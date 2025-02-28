@@ -17,6 +17,7 @@ class TaskListViewController: UIViewController {
         tableView.dataSource = self
         tableView.frame = view.bounds
         tableView.register(TaskCell.self, forCellReuseIdentifier: TaskCell.reuseIdentifier)
+        tableView.register(SubTaskCell.self, forCellReuseIdentifier: SubTaskCell.reuseIdentifier)
 
         return tableView
     }()
@@ -29,6 +30,7 @@ class TaskListViewController: UIViewController {
 
     private func setupUI() {
         title = "Tasks"
+        navigationController?.navigationBar.tintColor = .black
         navigationController?.navigationBar.prefersLargeTitles = true
         navigationItem.largeTitleDisplayMode = .always
         navigationItem.rightBarButtonItem = UIBarButtonItem(
@@ -44,20 +46,48 @@ class TaskListViewController: UIViewController {
 }
 
 extension TaskListViewController: UITableViewDataSource, UITableViewDelegate {
-    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+    func numberOfSections(in tableView: UITableView) -> Int {
         return tasks.count
+    }
+ 
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        let task = tasks[section]
+        return (task.subTasks?.count ?? 0) + 1
     }
 
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: TaskCell.reuseIdentifier, for: indexPath) as! TaskCell
-        let task = tasks[indexPath.row]
-        cell.configure(with: task)
+        let task = tasks[indexPath.section]
 
-        return cell
+        if indexPath.row == 0 {
+            // Main Task Cell
+            let cell = tableView.dequeueReusableCell(withIdentifier: TaskCell.reuseIdentifier, for: indexPath) as! TaskCell
+            cell.configure(with: task)
+            return cell
+        } else {
+            // SubTask Cell
+            let subTask = task.subTasks![indexPath.row - 1]
+            let cell = tableView.dequeueReusableCell(withIdentifier: SubTaskCell.reuseIdentifier, for: indexPath) as! SubTaskCell
+            cell.configure(with: subTask)
+            return cell
+        }
+    }
+
+    func tableView(_ tableView: UITableView, canEditRowAt indexPath: IndexPath) -> Bool {
+        return true
+    }
+
+    func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
+        if editingStyle == .delete {
+            // TODO: Remove selected task
+        }
     }
 
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         // let selectedTask = tasks[indexPath.row]
         // TODO: Navigate to SwiftUI Task Details Screen
+    }
+
+    func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
+        return indexPath.row == 0 ? 70 : 50
     }
 }
