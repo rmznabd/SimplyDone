@@ -10,14 +10,14 @@ import UIKit
 class TaskCell: UITableViewCell {
     static let reuseIdentifier = "TaskCell"
 
-    private let titleLabel: UILabel = {
+    private lazy var titleLabel: UILabel = {
         let label = UILabel()
         label.font = .boldSystemFont(ofSize: 16)
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
     }()
 
-    private let dueDateLabel: UILabel = {
+    private lazy var dueDateLabel: UILabel = {
         let label = UILabel()
         label.font = .systemFont(ofSize: 14)
         label.textColor = .darkGray
@@ -25,11 +25,12 @@ class TaskCell: UITableViewCell {
         return label
     }()
 
-    private let radioButton: UIButton = {
+    private lazy var radioButton: UIButton = {
         let button = UIButton(type: .system)
         button.setImage(UIImage(systemName: "circle"), for: .normal) // Empty by default
         button.tintColor = .gray
         button.translatesAutoresizingMaskIntoConstraints = false
+        button.addTarget(self, action: #selector(didTapRadioButton), for: .touchUpInside)
         return button
     }()
 
@@ -92,5 +93,11 @@ class TaskCell: UITableViewCell {
         let formatter = DateFormatter()
         formatter.dateStyle = .medium
         return formatter.string(from: date)
+    }
+
+    @objc
+    private func didTapRadioButton() {
+        print("Task radio button tapped")
+        // TODO: Handle radio button action here
     }
 }

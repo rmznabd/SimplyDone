@@ -10,18 +10,19 @@ import UIKit
 class SubTaskCell: UITableViewCell {
     static let reuseIdentifier = "SubTaskCell"
 
-    private let titleLabel: UILabel = {
+    private lazy var titleLabel: UILabel = {
         let label = UILabel()
         label.font = .systemFont(ofSize: 14)
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
     }()
 
-    private let radioButton: UIButton = {
+    private lazy var radioButton: UIButton = {
         let button = UIButton(type: .system)
         button.setImage(UIImage(systemName: "circle"), for: .normal) // Empty by default
         button.tintColor = .gray
         button.translatesAutoresizingMaskIntoConstraints = false
+        button.addTarget(self, action: #selector(didTapRadioButton), for: .touchUpInside)
         return button
     }()
 
@@ -71,5 +72,11 @@ class SubTaskCell: UITableViewCell {
             radioButton.setImage(UIImage(systemName: "circle"), for: .normal)
             radioButton.tintColor = .gray
         }
+    }
+
+    @objc
+    private func didTapRadioButton() {
+        print("SubTask radio button tapped")
+        // TODO: Handle radio button action here
     }
 }
