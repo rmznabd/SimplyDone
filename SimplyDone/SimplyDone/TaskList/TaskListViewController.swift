@@ -94,6 +94,7 @@ extension TaskListViewController: UITableViewDataSource, UITableViewDelegate {
                     status: .constant(task.isCompleted ? .completed : .pending)
                 )
             )
+            taskDetailsScreen.navigationItem.largeTitleDisplayMode = .never
             self.navigationController?.pushViewController(taskDetailsScreen, animated: true)
         } else {
             // Show SubTask Details
@@ -104,6 +105,7 @@ extension TaskListViewController: UITableViewDataSource, UITableViewDelegate {
                     status: .constant(subTask.isCompleted ? .completed : .pending)
                 )
             )
+            subTaskDetailsScreen.navigationItem.largeTitleDisplayMode = .never
             self.navigationController?.pushViewController(subTaskDetailsScreen, animated: true)
         }
     }

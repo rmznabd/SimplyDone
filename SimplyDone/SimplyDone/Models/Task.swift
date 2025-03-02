@@ -15,7 +15,7 @@ struct Task {
     let subTasks: [SubTask]?
 }
 
-struct SubTask: Identifiable {
+struct SubTask: Identifiable, Hashable {
     let id = UUID()
     let title: String
     let description: String

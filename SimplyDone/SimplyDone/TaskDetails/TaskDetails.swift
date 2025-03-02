@@ -42,28 +42,35 @@ struct TaskDetails: View {
             }
             .pickerStyle(.segmented)
 
-            if let subTasks = task.subTasks {
+            if let subTasks = task.subTasks, !subTasks.isEmpty {
                 Text("Subtasks")
                     .font(.headline)
                     .padding(.top, 20)
 
-                List(subTasks) { subTask in
-                    HStack {
-                        Image(systemName: subTask.isCompleted ? "checkmark.circle.fill" : "circle")
-                            .foregroundColor(subTask.isCompleted ? .gray : .gray)
-                            .padding(.trailing, 10)
-
-                        VStack(alignment: .leading) {
-                            Text(subTask.title)
-                                .font(.body)
-                                .strikethrough(subTask.isCompleted, color: .gray)
-
-                            Text(subTask.description)
-                                .font(.caption)
-                                .foregroundColor(.secondary)
+                List {
+                    ForEach(subTasks, id: \.self) { subTask in
+                        NavigationLink(destination: SubTaskDetails(subTask: subTask, status: .constant(subTask.isCompleted ? .completed : .pending))) {
+                            HStack {
+                                Image(systemName: subTask.isCompleted ? "checkmark.circle.fill" : "circle")
+                                    .foregroundColor(subTask.isCompleted ? .gray : .gray)
+                                    .padding(.trailing, 10)
+                    
+                                VStack(alignment: .leading) {
+                                    Text(subTask.title)
+                                        .font(.body)
+                                        .strikethrough(subTask.isCompleted, color: .gray)
+                    
+                                    Text(subTask.description)
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
+                                }
+                            }
+                            .padding(.vertical, 5)
                         }
                     }
-                    .padding(.vertical, 5)
+                    .onDelete { indexSet in
+                        // TODO: Remove SubTask here
+                    }
                 }
                 .listStyle(.plain)
             }
@@ -72,7 +79,6 @@ struct TaskDetails: View {
         }
         .padding()
         .navigationTitle("Task Details")
-        .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .navigationBarTrailing) {
                 Button("Edit") {

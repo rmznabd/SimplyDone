@@ -38,8 +38,7 @@ struct SubTaskDetails: View {
             Spacer()
         }
         .padding()
-        .navigationTitle("Task Details")
-        .navigationBarTitleDisplayMode(.inline)
+        .navigationTitle("SubTask Details")
         .toolbar {
             ToolbarItem(placement: .navigationBarTrailing) {
                 Button("Edit") {
