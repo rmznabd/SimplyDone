@@ -6,6 +6,7 @@
 //
 
 import UIKit
+import SwiftUI
 
 class TaskListViewController: UIViewController {
 
@@ -83,8 +84,28 @@ extension TaskListViewController: UITableViewDataSource, UITableViewDelegate {
     }
 
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        // let selectedTask = tasks[indexPath.row]
-        // TODO: Navigate to SwiftUI Task Details Screen
+        let task = tasks[indexPath.section]
+
+        if indexPath.row == 0 {
+            // Show Task Details
+            let taskDetailsScreen = UIHostingController(
+                rootView: TaskDetails(
+                    task: task,
+                    status: .constant(task.isCompleted ? .completed : .pending)
+                )
+            )
+            self.navigationController?.pushViewController(taskDetailsScreen, animated: true)
+        } else {
+            // Show SubTask Details
+            let subTask = task.subTasks![indexPath.row - 1]
+            let subTaskDetailsScreen = UIHostingController(
+                rootView: SubTaskDetails(
+                    subTask: subTask,
+                    status: .constant(subTask.isCompleted ? .completed : .pending)
+                )
+            )
+            self.navigationController?.pushViewController(subTaskDetailsScreen, animated: true)
+        }
     }
 
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {

@@ -15,7 +15,8 @@ struct Task {
     let subTasks: [SubTask]?
 }
 
-struct SubTask {
+struct SubTask: Identifiable {
+    let id = UUID()
     let title: String
     let description: String
     let isCompleted: Bool
@@ -34,7 +35,7 @@ extension Task {
                 SubTask(
                     title: "Schedule Meeting",
                     description: "Discuss project initials",
-                    isCompleted: false
+                    isCompleted: true
                 ),
                 SubTask(
                     title: "Project overview",
@@ -71,7 +72,7 @@ extension Task {
                 SubTask(
                     title: "Schedule a meeting",
                     description: "Discuss all topics",
-                    isCompleted: false
+                    isCompleted: true
                 )
             ]
         )
