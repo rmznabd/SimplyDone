@@ -1,25 +1,20 @@
 //
-//  AddTask.swift
+//  AddSubTask.swift
 //  SimplyDone
 //
-//  Created by Ramazan Abdullayev on 02/03/2025.
+//  Created by Ramazan Abdullayev on 03/03/2025.
 //
 
 import SwiftUI
 
-struct AddTask: View {
+struct AddSubTask: View {
     @State private var title: String = ""
     @State private var description: String = ""
-    @State private var dueDate: Date = .now
-    @State private var status: TaskStatus = .pending
 
     var body: some View {
         VStack(spacing: 30) {
             titleInput
             descriptionInput
-            dueDateInput
-            // TODO: Make picker available for edit mode ⤵️
-//            pickerView
 
             Button {
                 // TODO: Handle Add action here
@@ -27,12 +22,12 @@ struct AddTask: View {
                 Text("Add")
                     .modifier(PrimaryButtonModifier())
             }
-            .padding(.top, 70)
+            .padding(.top, 50)
 
             Spacer()
         }
         .padding()
-        .navigationTitle("Add new Task")
+        .navigationTitle("Add new SubTask")
     }
 
     private var titleInput: some View {
@@ -68,29 +63,8 @@ struct AddTask: View {
             }
         }
     }
-
-    private var dueDateInput: some View {
-        HStack {
-            Text("Due Date:")
-                .bold()
-            Spacer()
-            DatePicker("", selection: $dueDate, displayedComponents: .date)
-                .labelsHidden()
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(.leading, 16)
-        }
-    }
-
-    private var pickerView: some View {
-        Picker("Status", selection: $status) {
-            ForEach(TaskStatus.allCases, id: \.self) { status in
-                Text(status.rawValue).tag(status)
-            }
-        }
-        .pickerStyle(.segmented)
-    }
 }
 
 #Preview {
-    AddTask()
+    AddSubTask()
 }

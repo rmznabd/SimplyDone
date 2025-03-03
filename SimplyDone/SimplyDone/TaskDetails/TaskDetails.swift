@@ -43,9 +43,21 @@ struct TaskDetails: View {
             .pickerStyle(.segmented)
 
             if let subTasks = task.subTasks, !subTasks.isEmpty {
-                Text("Subtasks")
-                    .font(.headline)
-                    .padding(.top, 20)
+                HStack(alignment: .center) {
+                    Text("Subtasks")
+                        .font(.title2)
+                        .fontWeight(.bold)
+
+                    Spacer()
+
+                    NavigationLink(destination: AddSubTask()) {
+                        Image(systemName: "plus")
+                            .imageScale(.large)
+                            .frame(width: 30, height: 30)
+                            .foregroundColor(.black)
+                    }
+                }
+                .padding(.top, 20)
 
                 List {
                     ForEach(subTasks, id: \.self) { subTask in
