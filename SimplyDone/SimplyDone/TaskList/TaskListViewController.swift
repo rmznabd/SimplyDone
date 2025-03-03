@@ -42,7 +42,9 @@ class TaskListViewController: UIViewController {
     }
 
     @objc private func addTask() {
-        // TODO: Navigate to SwiftUI Add Task Screen
+        let addTaskScreen = UIHostingController(rootView: AddTask())
+        addTaskScreen.navigationItem.largeTitleDisplayMode = .never
+        navigationController?.pushViewController(addTaskScreen, animated: true)
     }
 }
 
