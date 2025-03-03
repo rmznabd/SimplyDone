@@ -74,7 +74,7 @@ class TaskCell: UITableViewCell {
         titleLabel.text = task.title
         dueDateLabel.text = task.dueDate != nil ? "Due: \(formattedDate(task.dueDate!))" : "No due date"
 
-        if task.isCompleted {
+        if task.status == .completed {
             titleLabel.textColor = .gray
             titleLabel.attributedText = NSAttributedString(
                 string: task.title,

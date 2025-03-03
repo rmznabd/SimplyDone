@@ -42,7 +42,7 @@ class TaskListViewController: UIViewController {
     }
 
     @objc private func addTask() {
-        let addTaskScreen = UIHostingController(rootView: AddTask())
+        let addTaskScreen = UIHostingController(rootView: AddTask(viewMode: .create))
         addTaskScreen.navigationItem.largeTitleDisplayMode = .never
         navigationController?.pushViewController(addTaskScreen, animated: true)
     }
@@ -93,7 +93,7 @@ extension TaskListViewController: UITableViewDataSource, UITableViewDelegate {
             let taskDetailsScreen = UIHostingController(
                 rootView: TaskDetails(
                     task: task,
-                    status: .constant(task.isCompleted ? .completed : .pending)
+                    status: .constant(task.status)
                 )
             )
             taskDetailsScreen.navigationItem.largeTitleDisplayMode = .never
@@ -104,7 +104,7 @@ extension TaskListViewController: UITableViewDataSource, UITableViewDelegate {
             let subTaskDetailsScreen = UIHostingController(
                 rootView: SubTaskDetails(
                     subTask: subTask,
-                    status: .constant(subTask.isCompleted ? .completed : .pending)
+                    status: .constant(subTask.status)
                 )
             )
             subTaskDetailsScreen.navigationItem.largeTitleDisplayMode = .never

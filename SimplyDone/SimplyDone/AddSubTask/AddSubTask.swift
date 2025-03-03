@@ -7,9 +7,19 @@
 
 import SwiftUI
 
+enum AddSubTaskViewMode {
+    case create
+    case edit
+}
+
 struct AddSubTask: View {
-    @State private var title: String = ""
-    @State private var description: String = ""
+    let viewMode: AddSubTaskViewMode
+    @State private var subTask: SubTask
+
+    init(viewMode: AddSubTaskViewMode, subTask: SubTask? = nil) {
+        self.viewMode = viewMode
+        _subTask = State(initialValue: subTask ?? SubTask(title: "", description: "", status: .pending))
+    }
 
     var body: some View {
         VStack(spacing: 30) {
@@ -19,7 +29,7 @@ struct AddSubTask: View {
             Button {
                 // TODO: Handle Add action here
             } label: {
-                Text("Add")
+                Text(viewMode == .create ? "Add" : "Save")
                     .modifier(PrimaryButtonModifier())
             }
             .padding(.top, 50)
@@ -27,14 +37,14 @@ struct AddSubTask: View {
             Spacer()
         }
         .padding()
-        .navigationTitle("Add new SubTask")
+        .navigationTitle(viewMode == .create ? "Add new SubTask" : "Edit SubTask")
     }
 
     private var titleInput: some View {
         VStack(alignment: .leading, spacing: 10) {
             Text("Title")
                 .font(.headline)
-            TextField("Enter task title", text: $title)
+            TextField("Enter task title", text: $subTask.title)
                 .textFieldStyle(.roundedBorder)
         }
     }
@@ -45,7 +55,7 @@ struct AddSubTask: View {
                 .font(.headline)
 
             ZStack(alignment: .topLeading) {
-                TextEditor(text: $description)
+                TextEditor(text: $subTask.description)
                     .frame(minHeight: 100, maxHeight: 200)
                     .multilineTextAlignment(.leading)
                     .padding(6)
@@ -54,7 +64,7 @@ struct AddSubTask: View {
                             .stroke(Color.gray.opacity(0.5), lineWidth: 0.5)
                     )
 
-                if description.isEmpty {
+                if subTask.description.isEmpty {
                     Text("Enter task description")
                         .foregroundColor(.gray.opacity(0.5))
                         .padding(.horizontal, 10)
@@ -66,5 +76,5 @@ struct AddSubTask: View {
 }
 
 #Preview {
-    AddSubTask()
+    AddSubTask(viewMode: .edit)
 }

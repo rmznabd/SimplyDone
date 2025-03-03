@@ -7,24 +7,34 @@
 
 import SwiftUI
 
+enum AddTaskViewMode {
+    case create
+    case edit
+}
+
 struct AddTask: View {
-    @State private var title: String = ""
-    @State private var description: String = ""
-    @State private var dueDate: Date = .now
-    @State private var status: TaskStatus = .pending
+    let viewMode: AddTaskViewMode
+    @State private var task: Task
+
+    init(viewMode: AddTaskViewMode, task: Task? = nil) {
+        self.viewMode = viewMode
+        _task = State(initialValue: task ?? Task(title: "", description: "", dueDate: nil, status: .pending, subTasks: nil))
+    }
 
     var body: some View {
         VStack(spacing: 30) {
             titleInput
             descriptionInput
             dueDateInput
-            // TODO: Make picker available for edit mode ⤵️
-//            pickerView
+
+            if viewMode == .edit {
+                pickerView
+            }
 
             Button {
                 // TODO: Handle Add action here
             } label: {
-                Text("Add")
+                Text(viewMode == .create ? "Add": "Save")
                     .modifier(PrimaryButtonModifier())
             }
             .padding(.top, 70)
@@ -32,14 +42,14 @@ struct AddTask: View {
             Spacer()
         }
         .padding()
-        .navigationTitle("Add new Task")
+        .navigationTitle(viewMode == .create ? "Add new Task" : "Edit Task")
     }
 
     private var titleInput: some View {
         VStack(alignment: .leading, spacing: 10) {
             Text("Title")
                 .font(.headline)
-            TextField("Enter task title", text: $title)
+            TextField("Enter task title", text: $task.title)
                 .textFieldStyle(.roundedBorder)
         }
     }
@@ -50,7 +60,7 @@ struct AddTask: View {
                 .font(.headline)
 
             ZStack(alignment: .topLeading) {
-                TextEditor(text: $description)
+                TextEditor(text: $task.description)
                     .frame(minHeight: 100, maxHeight: 200)
                     .multilineTextAlignment(.leading)
                     .padding(6)
@@ -59,7 +69,7 @@ struct AddTask: View {
                             .stroke(Color.gray.opacity(0.5), lineWidth: 0.5)
                     )
 
-                if description.isEmpty {
+                if task.description.isEmpty {
                     Text("Enter task description")
                         .foregroundColor(.gray.opacity(0.5))
                         .padding(.horizontal, 10)
@@ -74,7 +84,10 @@ struct AddTask: View {
             Text("Due Date:")
                 .bold()
             Spacer()
-            DatePicker("", selection: $dueDate, displayedComponents: .date)
+            DatePicker("", selection: Binding(
+                get: { task.dueDate ?? .now },
+                set: { task.dueDate = $0 }
+            ), displayedComponents: .date)
                 .labelsHidden()
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.leading, 16)
@@ -82,7 +95,7 @@ struct AddTask: View {
     }
 
     private var pickerView: some View {
-        Picker("Status", selection: $status) {
+        Picker("Status", selection: $task.status) {
             ForEach(TaskStatus.allCases, id: \.self) { status in
                 Text(status.rawValue).tag(status)
             }
@@ -92,5 +105,5 @@ struct AddTask: View {
 }
 
 #Preview {
-    AddTask()
+    AddTask(viewMode: .edit)
 }

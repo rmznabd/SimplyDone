@@ -7,19 +7,24 @@
 
 import Foundation
 
+enum TaskStatus: String, CaseIterable {
+    case pending = "Pending"
+    case completed = "Completed"
+}
+
 struct Task {
-    let title: String
-    let description: String
-    let dueDate: Date?
-    let isCompleted: Bool
-    let subTasks: [SubTask]?
+    var title: String
+    var description: String
+    var dueDate: Date?
+    var status: TaskStatus
+    var subTasks: [SubTask]?
 }
 
 struct SubTask: Identifiable, Hashable {
     let id = UUID()
-    let title: String
-    let description: String
-    let isCompleted: Bool
+    var title: String
+    var description: String
+    var status: TaskStatus
 }
 
 // MARK: Mock data below
@@ -30,22 +35,22 @@ extension Task {
             title: "Decide MeetUp topic",
             description: "Research to find attractive topic to talk about",
             dueDate: Date(),
-            isCompleted: false,
+            status: .pending,
             subTasks: [
                 SubTask(
                     title: "Schedule Meeting",
                     description: "Discuss project initials",
-                    isCompleted: true
+                    status: .completed
                 ),
                 SubTask(
                     title: "Project overview",
                     description: "Write down all steps needs to be done",
-                    isCompleted: true
+                    status: .completed
                 ),
                 SubTask(
                     title: "Project design",
                     description: "How app will look like?",
-                    isCompleted: false
+                    status: .pending
                 )
             ]
         ),
@@ -53,26 +58,26 @@ extension Task {
             title: "Sample project",
             description: "Start to implement sample project",
             dueDate: nil,
-            isCompleted: true,
+            status: .completed,
             subTasks: nil
         ),
         Task(
             title: "Presentation slides",
             description: "Prepare not boring slides 😄",
             dueDate: nil,
-            isCompleted: false,
+            status: .pending,
             subTasks: nil
         ),
         Task(
             title: "SwiftUI talk",
             description: "Have a content to speak inclusively",
             dueDate: Date(),
-            isCompleted: true,
+            status: .completed,
             subTasks: [
                 SubTask(
                     title: "Schedule a meeting",
                     description: "Discuss all topics",
-                    isCompleted: true
+                    status: .completed
                 )
             ]
         )

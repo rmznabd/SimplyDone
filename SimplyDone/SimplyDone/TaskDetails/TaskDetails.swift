@@ -7,11 +7,6 @@
 
 import SwiftUI
 
-enum TaskStatus: String, CaseIterable {
-    case pending = "Pending"
-    case completed = "Completed"
-}
-
 struct TaskDetails: View {
     let task: Task
     @Binding var status: TaskStatus
@@ -42,50 +37,7 @@ struct TaskDetails: View {
             }
             .pickerStyle(.segmented)
 
-            if let subTasks = task.subTasks, !subTasks.isEmpty {
-                HStack(alignment: .center) {
-                    Text("Subtasks")
-                        .font(.title2)
-                        .fontWeight(.bold)
-
-                    Spacer()
-
-                    NavigationLink(destination: AddSubTask()) {
-                        Image(systemName: "plus")
-                            .imageScale(.large)
-                            .frame(width: 30, height: 30)
-                            .foregroundColor(.black)
-                    }
-                }
-                .padding(.top, 20)
-
-                List {
-                    ForEach(subTasks, id: \.self) { subTask in
-                        NavigationLink(destination: SubTaskDetails(subTask: subTask, status: .constant(subTask.isCompleted ? .completed : .pending))) {
-                            HStack {
-                                Image(systemName: subTask.isCompleted ? "checkmark.circle.fill" : "circle")
-                                    .foregroundColor(subTask.isCompleted ? .gray : .gray)
-                                    .padding(.trailing, 10)
-                    
-                                VStack(alignment: .leading) {
-                                    Text(subTask.title)
-                                        .font(.body)
-                                        .strikethrough(subTask.isCompleted, color: .gray)
-                    
-                                    Text(subTask.description)
-                                        .font(.caption)
-                                        .foregroundColor(.secondary)
-                                }
-                            }
-                            .padding(.vertical, 5)
-                        }
-                    }
-                    .onDelete { indexSet in
-                        // TODO: Remove SubTask here
-                    }
-                }
-                .listStyle(.plain)
-            }
+            subTasksList
 
             Spacer()
         }
@@ -93,10 +45,62 @@ struct TaskDetails: View {
         .navigationTitle("Task Details")
         .toolbar {
             ToolbarItem(placement: .navigationBarTrailing) {
-                Button("Edit") {
-                    // TODO: Add edit action here
+                NavigationLink(destination: AddTask(viewMode: .edit, task: task)) {
+                    Image(systemName: "square.and.pencil")
+                        .imageScale(.large)
+                        .foregroundColor(.black)
                 }
-                .tint(.black)
+            }
+        }
+    }
+
+    private var subTasksList: some View {
+        Group {
+            if let subTasks = task.subTasks, !subTasks.isEmpty {
+                VStack(alignment: .leading, spacing: 10) {
+                    HStack(alignment: .center) {
+                        Text("Subtasks")
+                            .font(.title2)
+                            .fontWeight(.bold)
+
+                        Spacer()
+
+                        NavigationLink(destination: AddSubTask(viewMode: .create)) {
+                            Image(systemName: "plus")
+                                .imageScale(.large)
+                                .frame(width: 30, height: 30)
+                                .foregroundColor(.black)
+                        }
+                    }
+                    .padding(.top, 20)
+
+                    List {
+                        ForEach(subTasks, id: \.self) { subTask in
+                            NavigationLink(destination: SubTaskDetails(subTask: subTask, status: .constant(subTask.status))) {
+                                HStack {
+                                    Image(systemName: subTask.status == .completed ? "checkmark.circle.fill" : "circle")
+                                        .foregroundColor(.gray)
+                                        .padding(.trailing, 10)
+
+                                    VStack(alignment: .leading) {
+                                        Text(subTask.title)
+                                            .font(.body)
+                                            .strikethrough(subTask.status == .completed, color: .gray)
+
+                                        Text(subTask.description)
+                                            .font(.caption)
+                                            .foregroundColor(.secondary)
+                                    }
+                                }
+                                .padding(.vertical, 5)
+                            }
+                        }
+                        .onDelete { indexSet in
+                            // TODO: Remove SubTask here
+                        }
+                    }
+                    .listStyle(.plain)
+                }
             }
         }
     }

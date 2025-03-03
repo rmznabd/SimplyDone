@@ -7,14 +7,9 @@
 
 import SwiftUI
 
-enum SubTaskStatus: String, CaseIterable {
-    case pending = "Pending"
-    case completed = "Completed"
-}
-
 struct SubTaskDetails: View {
     let subTask: SubTask
-    @Binding var status: SubTaskStatus
+    @Binding var status: TaskStatus
 
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
@@ -29,7 +24,7 @@ struct SubTaskDetails: View {
                 .foregroundColor(.secondary)
 
             Picker("Status", selection: $status) {
-                ForEach(SubTaskStatus.allCases, id: \.self) { status in
+                ForEach(TaskStatus.allCases, id: \.self) { status in
                     Text(status.rawValue).tag(status)
                 }
             }
@@ -41,10 +36,11 @@ struct SubTaskDetails: View {
         .navigationTitle("SubTask Details")
         .toolbar {
             ToolbarItem(placement: .navigationBarTrailing) {
-                Button("Edit") {
-                    // TODO: Add edit action here
+                NavigationLink(destination: AddSubTask(viewMode: .edit, subTask: subTask)) {
+                    Image(systemName: "square.and.pencil")
+                        .imageScale(.large)
+                        .foregroundColor(.black)
                 }
-                .tint(.black)
             }
         }
     }

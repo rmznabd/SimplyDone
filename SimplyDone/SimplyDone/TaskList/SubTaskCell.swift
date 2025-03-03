@@ -59,7 +59,7 @@ class SubTaskCell: UITableViewCell {
     func configure(with subTask: SubTask) {
         titleLabel.text = subTask.title
 
-        if subTask.isCompleted {
+        if subTask.status == .completed {
             titleLabel.textColor = .gray
             titleLabel.attributedText = NSAttributedString(
                 string: subTask.title,
