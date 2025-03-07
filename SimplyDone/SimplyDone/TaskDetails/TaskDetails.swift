@@ -82,15 +82,9 @@ struct TaskDetails: View {
                                         .foregroundColor(.gray)
                                         .padding(.trailing, 10)
 
-                                    VStack(alignment: .leading) {
-                                        Text(subTask.title)
-                                            .font(.body)
-                                            .strikethrough(subTask.status == .completed, color: .gray)
-
-                                        Text(subTask.description)
-                                            .font(.caption)
-                                            .foregroundColor(.secondary)
-                                    }
+                                    Text(subTask.title)
+                                        .font(.body)
+                                        .strikethrough(subTask.status == .completed, color: .gray)
                                 }
                                 .padding(.vertical, 5)
                             }
