@@ -79,7 +79,7 @@ struct TaskDetails: View {
                         ForEach(subTasks, id: \.self) { subTask in
                             NavigationLink(destination: SubTaskDetails(subTask: subTask, status: .constant(subTask.status))) {
                                 HStack {
-                                    Image(systemName: subTask.status == .completed ? "checkmark.circle.fill" : "circle")
+                                    Image(systemName: subTask.status == .completed ? "checkmark.square.fill" : "square")
                                         .foregroundColor(.gray)
                                         .padding(.trailing, 10)
 
