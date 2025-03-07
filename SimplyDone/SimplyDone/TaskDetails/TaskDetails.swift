@@ -56,24 +56,25 @@ struct TaskDetails: View {
 
     private var subTasksList: some View {
         Group {
+            HStack(alignment: .center) {
+                Text("Subtasks")
+                    .font(.title2)
+                    .fontWeight(.bold)
+
+                Spacer()
+
+                NavigationLink(destination: AddSubTask(viewMode: .create)) {
+                    Image(systemName: "plus")
+                        .imageScale(.large)
+                        .frame(width: 30, height: 30)
+                        .foregroundColor(.black)
+                }
+            }
+            .padding(.top, 20)
+            .padding(.horizontal, 10)
+
             if let subTasks = task.subTasks, !subTasks.isEmpty {
                 VStack(alignment: .leading, spacing: 10) {
-                    HStack(alignment: .center) {
-                        Text("Subtasks")
-                            .font(.title2)
-                            .fontWeight(.bold)
-
-                        Spacer()
-
-                        NavigationLink(destination: AddSubTask(viewMode: .create)) {
-                            Image(systemName: "plus")
-                                .imageScale(.large)
-                                .frame(width: 30, height: 30)
-                                .foregroundColor(.black)
-                        }
-                    }
-                    .padding(.top, 20)
-
                     List {
                         ForEach(subTasks, id: \.self) { subTask in
                             NavigationLink(destination: SubTaskDetails(subTask: subTask, status: .constant(subTask.status))) {
@@ -95,6 +96,20 @@ struct TaskDetails: View {
                     }
                     .listStyle(.plain)
                 }
+            } else {
+                VStack(alignment: .center) {
+                    Image(systemName: "tray.fill")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 50, height: 50)
+                        .foregroundColor(.gray)
+
+                    Text("No subtasks")
+                        .font(.headline)
+                        .foregroundColor(.gray)
+                        .padding(.top, 5)
+                }
+                .frame(maxWidth: .infinity, minHeight: 150)
             }
         }
     }
