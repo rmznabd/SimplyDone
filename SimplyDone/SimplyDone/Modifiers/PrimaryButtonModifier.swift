@@ -13,12 +13,8 @@ struct PrimaryButtonModifier: ViewModifier {
             .font(.headline)
             .frame(maxWidth: .infinity)
             .frame(height: 50)
-            .background(Color.green.opacity(0.8))
+            .background(.green.opacity(0.5))
             .foregroundColor(.black)
             .cornerRadius(10)
-            .overlay(
-                RoundedRectangle(cornerRadius: 10)
-                    .stroke(.clear, lineWidth: 0.5)
-            )
     }
 }

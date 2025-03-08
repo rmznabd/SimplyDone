@@ -26,15 +26,14 @@ struct AddSubTask: View {
             titleInput
             descriptionInput
 
+            Spacer()
+
             Button {
                 // TODO: Handle Add action here
             } label: {
                 Text(viewMode == .create ? "Add" : "Save")
                     .modifier(PrimaryButtonModifier())
             }
-            .padding(.top, 50)
-
-            Spacer()
         }
         .padding()
         .navigationTitle(viewMode == .create ? "Add new SubTask" : "Edit SubTask")
