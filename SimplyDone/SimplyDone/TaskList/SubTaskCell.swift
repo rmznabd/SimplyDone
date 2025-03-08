@@ -19,7 +19,7 @@ class SubTaskCell: UITableViewCell {
 
     private lazy var radioButton: UIButton = {
         let button = UIButton(type: .system)
-        button.setImage(UIImage(systemName: "circle"), for: .normal) // Empty by default
+        button.setImage(UIImage(systemName: "square"), for: .normal)
         button.tintColor = .gray
         button.translatesAutoresizingMaskIntoConstraints = false
         button.addTarget(self, action: #selector(didTapRadioButton), for: .touchUpInside)
@@ -65,11 +65,11 @@ class SubTaskCell: UITableViewCell {
                 string: subTask.title,
                 attributes: [.strikethroughStyle: NSUnderlineStyle.single.rawValue]
             )
-            radioButton.setImage(UIImage(systemName: "checkmark.circle.fill"), for: .normal)
+            radioButton.setImage(UIImage(systemName: "checkmark.square.fill"), for: .normal)
             radioButton.tintColor = .darkGray
         } else {
             titleLabel.textColor = .black
-            radioButton.setImage(UIImage(systemName: "circle"), for: .normal)
+            radioButton.setImage(UIImage(systemName: "square"), for: .normal)
             radioButton.tintColor = .gray
         }
     }

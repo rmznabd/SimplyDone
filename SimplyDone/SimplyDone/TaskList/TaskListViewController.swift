@@ -17,6 +17,7 @@ class TaskListViewController: UIViewController {
         tableView.delegate = self
         tableView.dataSource = self
         tableView.frame = view.bounds
+        tableView.separatorColor = .clear
         tableView.register(TaskCell.self, forCellReuseIdentifier: TaskCell.reuseIdentifier)
         tableView.register(SubTaskCell.self, forCellReuseIdentifier: SubTaskCell.reuseIdentifier)
 
@@ -65,12 +66,14 @@ extension TaskListViewController: UITableViewDataSource, UITableViewDelegate {
             // Main Task Cell
             let cell = tableView.dequeueReusableCell(withIdentifier: TaskCell.reuseIdentifier, for: indexPath) as! TaskCell
             cell.configure(with: task)
+            cell.selectionStyle = .none
             return cell
         } else {
             // SubTask Cell
             let subTask = task.subTasks![indexPath.row - 1]
             let cell = tableView.dequeueReusableCell(withIdentifier: SubTaskCell.reuseIdentifier, for: indexPath) as! SubTaskCell
             cell.configure(with: subTask)
+            cell.selectionStyle = .none
             return cell
         }
     }
@@ -90,23 +93,15 @@ extension TaskListViewController: UITableViewDataSource, UITableViewDelegate {
 
         if indexPath.row == 0 {
             // Show Task Details
-            let taskDetailsScreen = UIHostingController(
-                rootView: TaskDetails(
-                    task: task,
-                    status: .constant(task.status)
-                )
-            )
+            let taskDetailsScreen = UIHostingController(rootView: TaskDetails(task: task))
+
             taskDetailsScreen.navigationItem.largeTitleDisplayMode = .never
             self.navigationController?.pushViewController(taskDetailsScreen, animated: true)
         } else {
             // Show SubTask Details
             let subTask = task.subTasks![indexPath.row - 1]
-            let subTaskDetailsScreen = UIHostingController(
-                rootView: SubTaskDetails(
-                    subTask: subTask,
-                    status: .constant(subTask.status)
-                )
-            )
+            let subTaskDetailsScreen = UIHostingController(rootView: SubTaskDetails(subTask: subTask))
+
             subTaskDetailsScreen.navigationItem.largeTitleDisplayMode = .never
             self.navigationController?.pushViewController(subTaskDetailsScreen, animated: true)
         }

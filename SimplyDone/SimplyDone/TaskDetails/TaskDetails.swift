@@ -8,34 +8,40 @@
 import SwiftUI
 
 struct TaskDetails: View {
-    let task: Task
-    @Binding var status: TaskStatus
+    @State var task: Task
 
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
 
-            Text(task.title)
-                .font(.title)
-                .fontWeight(.bold)
-                .padding(.top, 20)
+            HStack(alignment: .center) {
+                Image(systemName: task.status == .completed ? "checkmark.square.fill": "square")
+                    .imageScale(.large)
+                    .frame(width: 30, height: 30)
+                    .foregroundColor(Color(UIColor.darkGray))
+                    .onTapGesture {
+                        task.status.toggle()
+                    }
+
+                Text(task.title)
+                    .font(.title)
+                    .fontWeight(.bold)
+            }
+            .padding(.top, 20)
 
             Text(task.description)
                 .font(.body)
                 .foregroundColor(.secondary)
+                .padding()
 
             HStack {
-                Image(systemName: "calendar")
-                Text("Due Date: \(task.dueDate?.formatted(date: .abbreviated, time: .omitted) ?? "No Due Date")")
+                Image(systemName: task.dueDate == nil ? "calendar.badge.exclamationmark" : "calendar")
+                Text("\(task.dueDate?.formatted(date: .abbreviated, time: .omitted) ?? "No Due Date")")
                     .font(.subheadline)
                     .foregroundColor(.secondary)
             }
+            .padding(.top, 10)
 
-            Picker("Status", selection: $status) {
-                ForEach(TaskStatus.allCases, id: \.self) { status in
-                    Text(status.rawValue).tag(status)
-                }
-            }
-            .pickerStyle(.segmented)
+            Divider()
 
             subTasksList
 
@@ -56,44 +62,44 @@ struct TaskDetails: View {
 
     private var subTasksList: some View {
         Group {
+            HStack(alignment: .center) {
+                Text("Subtasks")
+                    .font(.title2)
+                    .fontWeight(.bold)
+
+                Spacer()
+
+                NavigationLink(destination: AddSubTask(viewMode: .create)) {
+                    Image(systemName: "plus")
+                        .imageScale(.large)
+                        .frame(width: 30, height: 30)
+                        .foregroundColor(.black)
+                }
+            }
+            .padding(.horizontal, 10)
+
             if let subTasks = task.subTasks, !subTasks.isEmpty {
                 VStack(alignment: .leading, spacing: 10) {
-                    HStack(alignment: .center) {
-                        Text("Subtasks")
-                            .font(.title2)
-                            .fontWeight(.bold)
-
-                        Spacer()
-
-                        NavigationLink(destination: AddSubTask(viewMode: .create)) {
-                            Image(systemName: "plus")
-                                .imageScale(.large)
-                                .frame(width: 30, height: 30)
-                                .foregroundColor(.black)
-                        }
-                    }
-                    .padding(.top, 20)
-
                     List {
                         ForEach(subTasks, id: \.self) { subTask in
-                            NavigationLink(destination: SubTaskDetails(subTask: subTask, status: .constant(subTask.status))) {
+                            NavigationLink(destination: SubTaskDetails(subTask: subTask)) {
                                 HStack {
-                                    Image(systemName: subTask.status == .completed ? "checkmark.circle.fill" : "circle")
+                                    Image(systemName: subTask.status == .completed ? "checkmark.square.fill" : "square")
                                         .foregroundColor(.gray)
                                         .padding(.trailing, 10)
+                                        .onTapGesture {
+                                            if let taskIndex = task.subTasks?.firstIndex(where: { $0.id == subTask.id }) {
+                                                self.task.subTasks?[taskIndex].status.toggle()
+                                            }
+                                        }
 
-                                    VStack(alignment: .leading) {
-                                        Text(subTask.title)
-                                            .font(.body)
-                                            .strikethrough(subTask.status == .completed, color: .gray)
-
-                                        Text(subTask.description)
-                                            .font(.caption)
-                                            .foregroundColor(.secondary)
-                                    }
+                                    Text(subTask.title)
+                                        .font(.body)
+                                        .strikethrough(subTask.status == .completed, color: .gray)
                                 }
                                 .padding(.vertical, 5)
                             }
+                            .listRowBackground(Color.clear)
                         }
                         .onDelete { indexSet in
                             // TODO: Remove SubTask here
@@ -101,14 +107,25 @@ struct TaskDetails: View {
                     }
                     .listStyle(.plain)
                 }
+            } else {
+                VStack(alignment: .center) {
+                    Image(systemName: "tray.fill")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 50, height: 50)
+                        .foregroundColor(.gray)
+
+                    Text("No subtasks")
+                        .font(.headline)
+                        .foregroundColor(.gray)
+                        .padding(.top, 5)
+                }
+                .frame(maxWidth: .infinity, minHeight: 150)
             }
         }
     }
 }
 
 #Preview {
-    TaskDetails(
-        task: Task.mockTasks.first!,
-        status: .constant(.completed)
-    )
+    TaskDetails(task: Task.mockTasks.first!)
 }
