@@ -9,36 +9,39 @@ import SwiftUI
 
 struct TaskDetails: View {
     let task: Task
-    @Binding var status: TaskStatus
 
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
+            
+            HStack(alignment: .center) {
+                Image(systemName: task.status == .completed ? "checkmark.square.fill": "square")
+                    .imageScale(.large)
+                    .frame(width: 30, height: 30)
+                    .foregroundColor(Color(UIColor.darkGray))
 
-            Text(task.title)
-                .font(.title)
-                .fontWeight(.bold)
-                .padding(.top, 20)
-
+                Text(task.title)
+                    .font(.title)
+                    .fontWeight(.bold)
+            }
+            .padding(.top, 20)
+            
             Text(task.description)
                 .font(.body)
                 .foregroundColor(.secondary)
-
+                .padding()
+            
             HStack {
-                Image(systemName: "calendar")
-                Text("Due Date: \(task.dueDate?.formatted(date: .abbreviated, time: .omitted) ?? "No Due Date")")
+                Image(systemName: task.dueDate == nil ? "calendar.badge.exclamationmark" : "calendar")
+                Text("\(task.dueDate?.formatted(date: .abbreviated, time: .omitted) ?? "No Due Date")")
                     .font(.subheadline)
                     .foregroundColor(.secondary)
             }
+            .padding(.top, 10)
 
-            Picker("Status", selection: $status) {
-                ForEach(TaskStatus.allCases, id: \.self) { status in
-                    Text(status.rawValue).tag(status)
-                }
-            }
-            .pickerStyle(.segmented)
-
+            Divider()
+            
             subTasksList
-
+            
             Spacer()
         }
         .padding()
@@ -70,14 +73,13 @@ struct TaskDetails: View {
                         .foregroundColor(.black)
                 }
             }
-            .padding(.top, 20)
             .padding(.horizontal, 10)
 
             if let subTasks = task.subTasks, !subTasks.isEmpty {
                 VStack(alignment: .leading, spacing: 10) {
                     List {
                         ForEach(subTasks, id: \.self) { subTask in
-                            NavigationLink(destination: SubTaskDetails(subTask: subTask, status: .constant(subTask.status))) {
+                            NavigationLink(destination: SubTaskDetails(subTask: subTask)) {
                                 HStack {
                                     Image(systemName: subTask.status == .completed ? "checkmark.square.fill" : "square")
                                         .foregroundColor(.gray)
@@ -116,8 +118,5 @@ struct TaskDetails: View {
 }
 
 #Preview {
-    TaskDetails(
-        task: Task.mockTasks.first!,
-        status: .constant(.completed)
-    )
+    TaskDetails(task: Task.mockTasks.first!)
 }

@@ -93,23 +93,15 @@ extension TaskListViewController: UITableViewDataSource, UITableViewDelegate {
 
         if indexPath.row == 0 {
             // Show Task Details
-            let taskDetailsScreen = UIHostingController(
-                rootView: TaskDetails(
-                    task: task,
-                    status: .constant(task.status)
-                )
-            )
+            let taskDetailsScreen = UIHostingController(rootView: TaskDetails(task: task))
+
             taskDetailsScreen.navigationItem.largeTitleDisplayMode = .never
             self.navigationController?.pushViewController(taskDetailsScreen, animated: true)
         } else {
             // Show SubTask Details
             let subTask = task.subTasks![indexPath.row - 1]
-            let subTaskDetailsScreen = UIHostingController(
-                rootView: SubTaskDetails(
-                    subTask: subTask,
-                    status: .constant(subTask.status)
-                )
-            )
+            let subTaskDetailsScreen = UIHostingController(rootView: SubTaskDetails(subTask: subTask))
+
             subTaskDetailsScreen.navigationItem.largeTitleDisplayMode = .never
             self.navigationController?.pushViewController(subTaskDetailsScreen, animated: true)
         }

@@ -33,7 +33,7 @@ extension Task {
     public static let mockTasks: [Task] = [
         Task(
             title: "Decide MeetUp topic",
-            description: "Research to find attractive topic to talk about",
+            description: "Research to find attractive topic to talk about ak nalsd lskd alsk nalksn dalskn calksnc alksdnc lksnc alksnc alk ncalkn clsknc aslknc alksnc alsknc alkc l l clsckn alsknc lskcn alsckn lscn alc.",
             dueDate: Date(),
             status: .pending,
             subTasks: [

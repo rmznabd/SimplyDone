@@ -9,30 +9,32 @@ import SwiftUI
 
 struct SubTaskDetails: View {
     let subTask: SubTask
-    @Binding var status: TaskStatus
 
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
 
-            Text(subTask.title)
-                .font(.title)
-                .fontWeight(.bold)
-                .padding(.top, 20)
+            HStack(alignment: .center) {
+                Image(systemName: subTask.status == .completed ? "checkmark.square.fill": "square")
+                    .imageScale(.large)
+                    .frame(width: 30, height: 30)
+                    .foregroundColor(Color(UIColor.darkGray))
+
+                Text(subTask.title)
+                    .font(.title)
+                    .fontWeight(.bold)
+                    .padding(.horizontal, 5)
+            }
+            .padding(.top, 20)
 
             Text(subTask.description)
                 .font(.body)
                 .foregroundColor(.secondary)
-
-            Picker("Status", selection: $status) {
-                ForEach(TaskStatus.allCases, id: \.self) { status in
-                    Text(status.rawValue).tag(status)
-                }
-            }
-            .pickerStyle(.segmented)
+                .padding()
 
             Spacer()
         }
         .padding()
+        .frame(maxWidth: .infinity, alignment: .leading)
         .navigationTitle("SubTask Details")
         .toolbar {
             ToolbarItem(placement: .navigationBarTrailing) {
@@ -48,8 +50,5 @@ struct SubTaskDetails: View {
 
 #Preview {
     let task = Task.mockTasks.first
-    SubTaskDetails(
-        subTask: task!.subTasks!.first!,
-        status: .constant(.completed)
-    )
+    SubTaskDetails(subTask: task!.subTasks!.first!)
 }
