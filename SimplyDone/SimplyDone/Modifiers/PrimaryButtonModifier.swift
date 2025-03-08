@@ -13,7 +13,7 @@ struct PrimaryButtonModifier: ViewModifier {
             .font(.headline)
             .frame(maxWidth: .infinity)
             .frame(height: 50)
-            .background(.green.opacity(0.5))
+            .background(.green.opacity(0.4))
             .foregroundColor(.black)
             .cornerRadius(10)
     }

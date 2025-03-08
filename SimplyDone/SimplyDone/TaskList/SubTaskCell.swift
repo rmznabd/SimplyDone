@@ -19,7 +19,7 @@ class SubTaskCell: UITableViewCell {
 
     private lazy var radioButton: UIButton = {
         let button = UIButton(type: .system)
-        button.setImage(UIImage(systemName: "square"), for: .normal) // Empty by default
+        button.setImage(UIImage(systemName: "square"), for: .normal)
         button.tintColor = .gray
         button.translatesAutoresizingMaskIntoConstraints = false
         button.addTarget(self, action: #selector(didTapRadioButton), for: .touchUpInside)

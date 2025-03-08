@@ -13,6 +13,7 @@ enum TaskStatus: String, CaseIterable {
 }
 
 struct Task {
+    let id = UUID()
     var title: String
     var description: String
     var dueDate: Date?
@@ -27,7 +28,21 @@ struct SubTask: Identifiable, Hashable {
     var status: TaskStatus
 }
 
-// MARK: Mock data below
+// MARK: - Status togglers
+
+extension TaskStatus {
+    mutating func toggle() {
+        self = self == .completed ? .pending : .completed
+    }
+}
+
+extension SubTask {
+    mutating func toggle() {
+        self.status = self.status == .completed ? .pending : .completed
+    }
+}
+
+// MARK: - Mock data below
 
 extension Task {
     public static let mockTasks: [Task] = [
