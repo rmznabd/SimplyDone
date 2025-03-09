@@ -1,5 +1,5 @@
 //
-//  SubTaskCell.swift
+//  SubtaskCell.swift
 //  SimplyDone
 //
 //  Created by Ramazan Abdullayev on 28/02/2025.
@@ -7,8 +7,8 @@
 
 import UIKit
 
-class SubTaskCell: UITableViewCell {
-    static let reuseIdentifier = "SubTaskCell"
+class SubtaskCell: UITableViewCell {
+    static let reuseIdentifier = "SubtaskCell"
 
     private lazy var titleLabel: UILabel = {
         let label = UILabel()
@@ -56,13 +56,13 @@ class SubTaskCell: UITableViewCell {
         ])
     }
 
-    func configure(with subTask: SubTask) {
-        titleLabel.text = subTask.title
+    func configure(with subtaskModel: SubtaskModel) {
+        titleLabel.text = subtaskModel.title
 
-        if subTask.status == .completed {
+        if subtaskModel.status == TaskStatus.completed.rawValue {
             titleLabel.textColor = .gray
             titleLabel.attributedText = NSAttributedString(
-                string: subTask.title,
+                string: subtaskModel.title,
                 attributes: [.strikethroughStyle: NSUnderlineStyle.single.rawValue]
             )
             radioButton.setImage(UIImage(systemName: "checkmark.square.fill"), for: .normal)
@@ -76,7 +76,7 @@ class SubTaskCell: UITableViewCell {
 
     @objc
     private func didTapRadioButton() {
-        print("SubTask radio button tapped")
+        print("Subtask radio button tapped")
         // TODO: Handle radio button action here
     }
 }

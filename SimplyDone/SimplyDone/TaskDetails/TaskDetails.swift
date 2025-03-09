@@ -5,45 +5,41 @@
 //  Created by Ramazan Abdullayev on 01/03/2025.
 //
 
+import RealmSwift
 import SwiftUI
 
 struct TaskDetails: View {
-    @State var task: Task
+    let taskModel: TaskModel
+    @Binding var status: TaskStatus
+    let realm = try? Realm()
 
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
 
-            HStack(alignment: .center) {
-                Image(systemName: task.status == .completed ? "checkmark.square.fill": "square")
-                    .imageScale(.large)
-                    .frame(width: 30, height: 30)
-                    .foregroundColor(Color(UIColor.darkGray))
-                    .onTapGesture {
-                        task.status.toggle()
-                    }
+            Text(taskModel.title)
+                .font(.title)
+                .fontWeight(.bold)
+                .padding(.top, 20)
 
-                Text(task.title)
-                    .font(.title)
-                    .fontWeight(.bold)
-            }
-            .padding(.top, 20)
-
-            Text(task.description)
+            Text(taskModel.taskDescription)
                 .font(.body)
                 .foregroundColor(.secondary)
-                .padding()
 
             HStack {
-                Image(systemName: task.dueDate == nil ? "calendar.badge.exclamationmark" : "calendar")
-                Text("\(task.dueDate?.formatted(date: .abbreviated, time: .omitted) ?? "No Due Date")")
+                Image(systemName: "calendar")
+                Text("Due Date: \(taskModel.dueDate?.formatted(date: .abbreviated, time: .omitted) ?? "No Due Date")")
                     .font(.subheadline)
                     .foregroundColor(.secondary)
             }
-            .padding(.top, 10)
 
-            Divider()
+            Picker("Status", selection: $status) {
+                ForEach(TaskStatus.allCases, id: \.self) { status in
+                    Text(status.rawValue).tag(status)
+                }
+            }
+            .pickerStyle(.segmented)
 
-            subTasksList
+            subtasksList
 
             Spacer()
         }
@@ -51,7 +47,7 @@ struct TaskDetails: View {
         .navigationTitle("Task Details")
         .toolbar {
             ToolbarItem(placement: .navigationBarTrailing) {
-                NavigationLink(destination: AddTask(viewMode: .edit, task: task)) {
+                NavigationLink(destination: AddTask(viewMode: .edit, taskModel: taskModel)) {
                     Image(systemName: "square.and.pencil")
                         .imageScale(.large)
                         .foregroundColor(.black)
@@ -60,72 +56,82 @@ struct TaskDetails: View {
         }
     }
 
-    private var subTasksList: some View {
-        Group {
-            HStack(alignment: .center) {
-                Text("Subtasks")
-                    .font(.title2)
-                    .fontWeight(.bold)
+    private func getSubtaskView(subtaskModel: SubtaskModel) -> some View {
+        NavigationLink(destination: SubtaskDetails(subtaskModel: subtaskModel, status: .constant(TaskStatus(rawValue: subtaskModel.status) ?? .pending))) {
+            HStack {
+                Image(systemName: subtaskModel.status == TaskStatus.completed.rawValue ? "checkmark.circle.fill" : "circle")
+                    .foregroundColor(.gray)
+                    .padding(.trailing, 10)
 
-                Spacer()
+                VStack(alignment: .leading) {
+                    Text(subtaskModel.title)
+                        .font(.body)
+                        .strikethrough(subtaskModel.status == TaskStatus.completed.rawValue, color: .gray)
 
-                NavigationLink(destination: AddSubTask(viewMode: .create)) {
-                    Image(systemName: "plus")
-                        .imageScale(.large)
-                        .frame(width: 30, height: 30)
-                        .foregroundColor(.black)
+                    Text(subtaskModel.taskDescription)
+                        .font(.caption)
+                        .foregroundColor(.secondary)
                 }
             }
-            .padding(.horizontal, 10)
+            .padding(.vertical, 5)
+        }
+    }
 
-            if let subTasks = task.subTasks, !subTasks.isEmpty {
+    private var subtasksList: some View {
+        Group {
+            if !taskModel.subtasks.isEmpty {
                 VStack(alignment: .leading, spacing: 10) {
-                    List {
-                        ForEach(subTasks, id: \.self) { subTask in
-                            NavigationLink(destination: SubTaskDetails(subTask: subTask)) {
-                                HStack {
-                                    Image(systemName: subTask.status == .completed ? "checkmark.square.fill" : "square")
-                                        .foregroundColor(.gray)
-                                        .padding(.trailing, 10)
-                                        .onTapGesture {
-                                            if let taskIndex = task.subTasks?.firstIndex(where: { $0.id == subTask.id }) {
-                                                self.task.subTasks?[taskIndex].status.toggle()
-                                            }
-                                        }
+                    HStack(alignment: .center) {
+                        Text("Subtasks")
+                            .font(.title2)
+                            .fontWeight(.bold)
 
-                                    Text(subTask.title)
-                                        .font(.body)
-                                        .strikethrough(subTask.status == .completed, color: .gray)
-                                }
-                                .padding(.vertical, 5)
-                            }
-                            .listRowBackground(Color.clear)
+                        Spacer()
+
+                        NavigationLink(destination: AddSubtask(viewMode: .create, subtaskModel: SubtaskModel())) {
+                            Image(systemName: "plus")
+                                .imageScale(.large)
+                                .frame(width: 30, height: 30)
+                                .foregroundColor(.black)
+                        }
+                    }
+                    .padding(.top, 20)
+
+                    List {
+                        ForEach(taskModel.subtasks, id: \.self) { subtaskModel in
+                            getSubtaskView(subtaskModel: subtaskModel)
                         }
                         .onDelete { indexSet in
-                            // TODO: Remove SubTask here
+                            guard let firstIndex = indexSet.first else { return }
+                            let subtaskTitle = taskModel.subtasks[firstIndex].title
+                            guard let task = realm?.objects(Task.self).filter({
+                                $0.title == taskModel.title &&
+                                $0.taskDescription == taskModel.taskDescription
+                            }).first else {
+                                return
+                            }
+                            let subtasksToDelete = Array(task.subtasks).filter({
+                                $0.title == subtaskTitle
+                            })
+                            do {
+                                try realm?.write {
+                                    realm?.delete(subtasksToDelete)
+                                }
+                            } catch {
+                                // Handle the error here
+                            }
                         }
                     }
                     .listStyle(.plain)
                 }
-            } else {
-                VStack(alignment: .center) {
-                    Image(systemName: "tray.fill")
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: 50, height: 50)
-                        .foregroundColor(.gray)
-
-                    Text("No subtasks")
-                        .font(.headline)
-                        .foregroundColor(.gray)
-                        .padding(.top, 5)
-                }
-                .frame(maxWidth: .infinity, minHeight: 150)
             }
         }
     }
 }
 
 #Preview {
-    TaskDetails(task: Task.mockTasks.first!)
+    TaskDetails(
+        taskModel: TaskModel.generatedTaskModels.first!,
+        status: .constant(.completed)
+    )
 }

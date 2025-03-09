@@ -1,5 +1,5 @@
 //
-//  SubTaskDetails.swift
+//  SubtaskDetails.swift
 //  SimplyDone
 //
 //  Created by Ramazan Abdullayev on 02/03/2025.
@@ -7,38 +7,36 @@
 
 import SwiftUI
 
-struct SubTaskDetails: View {
-    let subTask: SubTask
+struct SubtaskDetails: View {
+    let subtaskModel: SubtaskModel
+    @Binding var status: TaskStatus
 
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
 
-            HStack(alignment: .center) {
-                Image(systemName: subTask.status == .completed ? "checkmark.square.fill": "square")
-                    .imageScale(.large)
-                    .frame(width: 30, height: 30)
-                    .foregroundColor(Color(UIColor.darkGray))
+            Text(subtaskModel.title)
+                .font(.title)
+                .fontWeight(.bold)
+                .padding(.top, 20)
 
-                Text(subTask.title)
-                    .font(.title)
-                    .fontWeight(.bold)
-                    .padding(.horizontal, 5)
-            }
-            .padding(.top, 20)
-
-            Text(subTask.description)
+            Text(subtaskModel.taskDescription)
                 .font(.body)
                 .foregroundColor(.secondary)
-                .padding()
+
+            Picker("Status", selection: $status) {
+                ForEach(TaskStatus.allCases, id: \.self) { status in
+                    Text(status.rawValue).tag(status)
+                }
+            }
+            .pickerStyle(.segmented)
 
             Spacer()
         }
         .padding()
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .navigationTitle("SubTask Details")
+        .navigationTitle("Subtask Details")
         .toolbar {
             ToolbarItem(placement: .navigationBarTrailing) {
-                NavigationLink(destination: AddSubTask(viewMode: .edit, subTask: subTask)) {
+                NavigationLink(destination: AddSubtask(viewMode: .edit, subtaskModel: subtaskModel)) {
                     Image(systemName: "square.and.pencil")
                         .imageScale(.large)
                         .foregroundColor(.black)
@@ -49,6 +47,9 @@ struct SubTaskDetails: View {
 }
 
 #Preview {
-    let task = Task.mockTasks.first
-    SubTaskDetails(subTask: task!.subTasks!.first!)
+    let taskModel = TaskModel.generatedTaskModels.first
+    SubtaskDetails(
+        subtaskModel: taskModel!.subtasks.first!,
+        status: .constant(.pending)
+    )
 }

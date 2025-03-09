@@ -1,24 +1,26 @@
 //
-//  AddSubTask.swift
+//  AddSubtask.swift
 //  SimplyDone
 //
 //  Created by Ramazan Abdullayev on 03/03/2025.
 //
 
+import RealmSwift
 import SwiftUI
 
-enum AddSubTaskViewMode {
+enum AddSubtaskViewMode {
     case create
     case edit
 }
 
-struct AddSubTask: View {
-    let viewMode: AddSubTaskViewMode
-    @State private var subTask: SubTask
+struct AddSubtask: View {
+    let viewMode: AddSubtaskViewMode
+    private var subtaskModel: SubtaskModel
+    let realm = try? Realm()
 
-    init(viewMode: AddSubTaskViewMode, subTask: SubTask? = nil) {
+    init(viewMode: AddSubtaskViewMode, subtaskModel: SubtaskModel) {
         self.viewMode = viewMode
-        _subTask = State(initialValue: subTask ?? SubTask(title: "", description: "", status: .pending))
+        self.subtaskModel = subtaskModel
     }
 
     var body: some View {
@@ -29,21 +31,29 @@ struct AddSubTask: View {
             Spacer()
 
             Button {
-                // TODO: Handle Add action here
+                try? realm?.write {
+                    realm?.add(subtaskModel.toPersistObject())
+                }
             } label: {
                 Text(viewMode == .create ? "Add" : "Save")
                     .modifier(PrimaryButtonModifier())
             }
         }
         .padding()
-        .navigationTitle(viewMode == .create ? "Add new SubTask" : "Edit SubTask")
+        .navigationTitle(viewMode == .create ? "Add new Subtask" : "Edit Subtask")
     }
 
     private var titleInput: some View {
         VStack(alignment: .leading, spacing: 10) {
             Text("Title")
                 .font(.headline)
-            TextField("Enter task title", text: $subTask.title)
+            TextField(
+                "Enter task title",
+                text: Binding(
+                    get: { subtaskModel.title },
+                    set: { subtaskModel.title = $0 }
+                )
+            )
                 .textFieldStyle(.roundedBorder)
         }
     }
@@ -54,7 +64,12 @@ struct AddSubTask: View {
                 .font(.headline)
 
             ZStack(alignment: .topLeading) {
-                TextEditor(text: $subTask.description)
+                TextEditor(
+                    text: Binding(
+                        get: { subtaskModel.taskDescription },
+                        set: { subtaskModel.taskDescription = $0 }
+                    )
+                )
                     .frame(minHeight: 100, maxHeight: 200)
                     .multilineTextAlignment(.leading)
                     .padding(6)
@@ -63,7 +78,7 @@ struct AddSubTask: View {
                             .stroke(Color.gray.opacity(0.5), lineWidth: 0.5)
                     )
 
-                if subTask.description.isEmpty {
+                if subtaskModel.taskDescription.isEmpty {
                     Text("Enter task description")
                         .foregroundColor(.gray.opacity(0.5))
                         .padding(.horizontal, 10)
@@ -75,5 +90,5 @@ struct AddSubTask: View {
 }
 
 #Preview {
-    AddSubTask(viewMode: .edit)
+    AddSubtask(viewMode: .edit, subtaskModel: SubtaskModel(title: "Subtask", taskDescription: "Test description"))
 }
