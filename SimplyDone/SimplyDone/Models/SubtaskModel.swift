@@ -21,16 +21,18 @@ class SubtaskModel: Hashable {
         hasher.combine(id)
     }
 
-    let id = UUID()
+    let id: UUID
     var title: String
     var taskDescription: String
     var dueDate: Date?
     var status: String
 
-    init (title: String = "",
-          taskDescription: String = "",
-          dueDate: Date? = nil,
-          status: String = TaskStatus.pending.rawValue) {
+    init(id: UUID,
+         title: String = "",
+         taskDescription: String = "",
+         dueDate: Date? = nil,
+         status: String = TaskStatus.pending.rawValue) {
+        self.id = id
         self.title = title
         self.taskDescription = taskDescription
         self.dueDate = dueDate
@@ -38,7 +40,8 @@ class SubtaskModel: Hashable {
     }
 
     convenience init(realmObject: Subtask) {
-        self.init(title: realmObject.title,
+        self.init(id: realmObject.id,
+                  title: realmObject.title,
                   taskDescription: realmObject.taskDescription,
                   dueDate: realmObject.dueDate,
                   status: realmObject.status)

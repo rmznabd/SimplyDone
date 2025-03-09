@@ -8,6 +8,7 @@
 import SwiftUI
 
 struct SubtaskDetails: View {
+    let parentTaskModel: TaskModel
     let subtaskModel: SubtaskModel
 
     var body: some View {
@@ -38,7 +39,9 @@ struct SubtaskDetails: View {
         .navigationTitle("Subtask Details")
         .toolbar {
             ToolbarItem(placement: .navigationBarTrailing) {
-                NavigationLink(destination: AddSubtask(viewMode: .edit, subtaskModel: subtaskModel)) {
+                NavigationLink(destination: AddSubtask(viewMode: .edit,
+                                                       parentTaskModel: parentTaskModel,
+                                                       subtaskModel: subtaskModel)) {
                     Image(systemName: "square.and.pencil")
                         .imageScale(.large)
                         .foregroundColor(.black)
@@ -50,5 +53,5 @@ struct SubtaskDetails: View {
 
 #Preview {
     let taskModel = TaskModel.generatedTaskModels.first
-    SubtaskDetails(subtaskModel: taskModel!.subtasks.first!)
+    SubtaskDetails(parentTaskModel: taskModel!, subtaskModel: taskModel!.subtasks.first!)
 }

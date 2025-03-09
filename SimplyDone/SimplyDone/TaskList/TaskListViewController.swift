@@ -51,17 +51,16 @@ class TaskListViewController: UIViewController {
     }
 
     @objc private func addTask() {
-        let addTaskScreen = UIHostingController(rootView: AddTask(viewMode: .create, taskModel: TaskModel()))
+        let addTaskScreen = UIHostingController(rootView: AddTask(viewMode: .create, taskModel: TaskModel(id: UUID())))
         addTaskScreen.navigationItem.largeTitleDisplayMode = .never
         navigationController?.pushViewController(addTaskScreen, animated: true)
     }
 
     private func generateTasks() {
         if let result = realm?.objects(Task.self), !result.isEmpty {
-            let tasks = Array(result)
-            taskModels = tasks.compactMap { TaskModel(realmObject: $0) }
+            taskModels = Array(result).compactMap { TaskModel(realmObject: $0) }
         } else {
-            let taskModels = TaskModel.generatedTaskModels
+            taskModels = TaskModel.generatedTaskModels
             taskModels.forEach({ taskModel in
                 try? realm?.write {
                     realm?.add(taskModel.toPersistObject())
@@ -107,19 +106,40 @@ extension TaskListViewController: UITableViewDataSource, UITableViewDelegate {
 
     func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
         if editingStyle == .delete {
-            let taskModel = taskModels[indexPath.section]
-            let tasksToDelete = realm?.objects(Task.self).filter({
-                $0.title == taskModel.title
-            })
-            do {
-                if let objects = tasksToDelete {
-                    try realm?.write {
-                        realm?.delete(objects)
-                    }
+            if indexPath.row == 0 {
+                let taskModel = taskModels[indexPath.section]
+                guard let tasksToDelete = realm?.objects(Task.self).filter({
+                    $0.id == taskModel.id
+                }) else {
+                    return
                 }
-            } catch {
-                // Handle the error here
+                do {
+                    try realm?.write {
+                        realm?.delete(tasksToDelete)
+                    }
+                } catch {
+                    // Handle the error here
+                }
+            } else {
+                let taskModel = taskModels[indexPath.section]
+                let subtaskModel = taskModel.subtasks[indexPath.row - 1]
+                guard let task = realm?.objects(Task.self).filter({
+                    $0.id == taskModel.id
+                }).first else {
+                    return
+                }
+                let subtasksToDelete = Array(task.subtasks).filter({
+                    $0.id == subtaskModel.id
+                })
+                do {
+                    try realm?.write {
+                        realm?.delete(subtasksToDelete)
+                    }
+                } catch {
+                    // Handle the error here
+                }
             }
+            generateTasks()
         }
     }
 
@@ -135,7 +155,9 @@ extension TaskListViewController: UITableViewDataSource, UITableViewDelegate {
         } else {
             // Show Subtask Details
             let subtaskModel = taskModel.subtasks[indexPath.row - 1]
-            let subtaskDetailsScreen = UIHostingController(rootView: SubtaskDetails(subtaskModel: subtaskModel))
+            let subtaskDetailsScreen = UIHostingController(
+                rootView: SubtaskDetails(parentTaskModel: taskModel, subtaskModel: subtaskModel)
+            )
 
             subtaskDetailsScreen.navigationItem.largeTitleDisplayMode = .never
             self.navigationController?.pushViewController(subtaskDetailsScreen, animated: true)

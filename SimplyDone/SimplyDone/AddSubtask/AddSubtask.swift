@@ -15,11 +15,18 @@ enum AddSubtaskViewMode {
 
 struct AddSubtask: View {
     let viewMode: AddSubtaskViewMode
+    private var parentTaskModel: TaskModel
     private var subtaskModel: SubtaskModel
     let realm = try? Realm()
+    @Environment(\.dismiss) private var dismiss
 
-    init(viewMode: AddSubtaskViewMode, subtaskModel: SubtaskModel) {
+    init(
+        viewMode: AddSubtaskViewMode,
+        parentTaskModel: TaskModel,
+        subtaskModel: SubtaskModel
+    ) {
         self.viewMode = viewMode
+        self.parentTaskModel = parentTaskModel
         self.subtaskModel = subtaskModel
     }
 
@@ -32,8 +39,23 @@ struct AddSubtask: View {
 
             Button {
                 try? realm?.write {
-                    realm?.add(subtaskModel.toPersistObject())
+                    // TODO: question to Ramazan: should we add or edit the subtask when title or description is empty?
+                    guard let task = realm?.objects(Task.self).filter({
+                        $0.id == parentTaskModel.id
+                    }).first else { return }
+
+                    if let subtask = Array(task.subtasks).filter({
+                        $0.id == subtaskModel.id
+                    }).first {
+                        subtask.title = subtaskModel.title
+                        subtask.taskDescription = subtaskModel.taskDescription
+                        subtask.dueDate = subtaskModel.dueDate
+                    } else {
+                        parentTaskModel.subtasks.append(subtaskModel)
+                        task.subtasks.append(subtaskModel.toPersistObject())
+                    }
                 }
+                dismiss()
             } label: {
                 Text(viewMode == .create ? "Add" : "Save")
                     .modifier(PrimaryButtonModifier())
@@ -90,5 +112,9 @@ struct AddSubtask: View {
 }
 
 #Preview {
-    AddSubtask(viewMode: .edit, subtaskModel: SubtaskModel(title: "Subtask", taskDescription: "Test description"))
+    AddSubtask(
+        viewMode: .edit,
+        parentTaskModel: TaskModel(id: UUID(), title: "Test task", taskDescription: "Test description"),
+        subtaskModel: SubtaskModel(id: UUID(), title: "Subtask", taskDescription: "Test description")
+    )
 }

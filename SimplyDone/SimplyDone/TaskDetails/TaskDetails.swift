@@ -71,7 +71,13 @@ struct TaskDetails: View {
                 
                 Spacer()
                 
-                NavigationLink(destination: AddSubtask(viewMode: .create, subtaskModel: SubtaskModel())) {
+                NavigationLink(
+                    destination: AddSubtask(
+                    viewMode: .create,
+                    parentTaskModel: taskModel,
+                    subtaskModel: SubtaskModel(id: UUID())
+                    )
+                ) {
                     Image(systemName: "plus")
                         .imageScale(.large)
                         .frame(width: 30, height: 30)
@@ -88,15 +94,14 @@ struct TaskDetails: View {
                         }
                         .onDelete { indexSet in
                             guard let firstIndex = indexSet.first else { return }
-                            let subtaskTitle = taskModel.subtasks[firstIndex].title
+                            let subtask = taskModel.subtasks[firstIndex]
                             guard let task = realm?.objects(Task.self).filter({
-                                $0.title == taskModel.title &&
-                                $0.taskDescription == taskModel.taskDescription
+                                $0.id == taskModel.id
                             }).first else {
                                 return
                             }
                             let subtasksToDelete = Array(task.subtasks).filter({
-                                $0.title == subtaskTitle
+                                $0.id == subtask.id
                             })
                             do {
                                 try realm?.write {
@@ -128,7 +133,9 @@ struct TaskDetails: View {
     }
 
     private func getSubtaskView(subtaskModel: SubtaskModel) -> some View {
-        NavigationLink(destination: SubtaskDetails(subtaskModel: subtaskModel)) {
+        NavigationLink(destination: SubtaskDetails(parentTaskModel: taskModel,
+                                                   subtaskModel: subtaskModel)
+        ) {
             HStack {
                 Image(systemName: subtaskModel.status == TaskStatus.completed.rawValue ? "checkmark.square.fill" : "square")
                     .foregroundColor(.gray)

@@ -9,6 +9,7 @@ import Foundation
 import RealmSwift
 
 class Subtask: Object, Identifiable {
+    @Persisted var id: UUID
     @Persisted var title: String
     @Persisted var taskDescription: String
     @Persisted var dueDate: Date?
@@ -16,6 +17,7 @@ class Subtask: Object, Identifiable {
 
     convenience init(subtaskModel: SubtaskModel) {
         self.init()
+        id = subtaskModel.id
         title = subtaskModel.title
         taskDescription = subtaskModel.taskDescription
         dueDate = subtaskModel.dueDate

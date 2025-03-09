@@ -34,6 +34,7 @@ struct AddTask: View {
             Spacer()
 
             Button {
+                // TODO: question to Ramazan: should we add or edit the task when title or description is empty?
                 try? realm?.write {
                     realm?.add(taskModel.toPersistObject())
                 }
@@ -110,5 +111,5 @@ struct AddTask: View {
 }
 
 #Preview {
-    AddTask(viewMode: .edit, taskModel: TaskModel(title: "Test", taskDescription: "Test description", subtasks: [SubtaskModel]()))
+    AddTask(viewMode: .edit, taskModel: TaskModel(id: UUID(), title: "Test", taskDescription: "Test description", subtasks: [SubtaskModel]()))
 }

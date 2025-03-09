@@ -9,6 +9,7 @@ import Foundation
 import RealmSwift
 
 class Task: Object, Identifiable {
+    @Persisted var id: UUID
     @Persisted var title: String
     @Persisted var taskDescription: String
     @Persisted var dueDate: Date?
@@ -17,6 +18,7 @@ class Task: Object, Identifiable {
 
     convenience init(taskModel: TaskModel) {
         self.init()
+        id = taskModel.id
         title = taskModel.title
         taskDescription = taskModel.taskDescription
         dueDate = taskModel.dueDate
