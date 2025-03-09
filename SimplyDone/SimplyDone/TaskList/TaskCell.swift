@@ -70,14 +70,14 @@ class TaskCell: UITableViewCell {
         ])
     }
 
-    func configure(with task: Task) {
-        titleLabel.text = task.title
-        dueDateLabel.text = task.dueDate != nil ? "Due: \(formattedDate(task.dueDate!))" : "No due date"
+    func configure(with taskModel: TaskModel) {
+        titleLabel.text = taskModel.title
+        dueDateLabel.text = taskModel.dueDate != nil ? "Due: \(formattedDate(taskModel.dueDate!))" : "No due date"
 
-        if task.status == .completed {
+        if taskModel.status == TaskStatus.completed.rawValue {
             titleLabel.textColor = .gray
             titleLabel.attributedText = NSAttributedString(
-                string: task.title,
+                string: taskModel.title,
                 attributes: [.strikethroughStyle: NSUnderlineStyle.single.rawValue]
             )
             radioButton.setImage(UIImage(systemName: "checkmark.circle.fill"), for: .normal)

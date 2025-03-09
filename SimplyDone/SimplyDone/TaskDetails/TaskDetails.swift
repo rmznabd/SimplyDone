@@ -5,27 +5,29 @@
 //  Created by Ramazan Abdullayev on 01/03/2025.
 //
 
+import RealmSwift
 import SwiftUI
 
 struct TaskDetails: View {
-    let task: Task
+    let taskModel: TaskModel
     @Binding var status: TaskStatus
+    let realm = try? Realm()
 
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
 
-            Text(task.title)
+            Text(taskModel.title)
                 .font(.title)
                 .fontWeight(.bold)
                 .padding(.top, 20)
 
-            Text(task.description)
+            Text(taskModel.taskDescription)
                 .font(.body)
                 .foregroundColor(.secondary)
 
             HStack {
                 Image(systemName: "calendar")
-                Text("Due Date: \(task.dueDate?.formatted(date: .abbreviated, time: .omitted) ?? "No Due Date")")
+                Text("Due Date: \(taskModel.dueDate?.formatted(date: .abbreviated, time: .omitted) ?? "No Due Date")")
                     .font(.subheadline)
                     .foregroundColor(.secondary)
             }
@@ -37,7 +39,7 @@ struct TaskDetails: View {
             }
             .pickerStyle(.segmented)
 
-            subTasksList
+            subtasksList
 
             Spacer()
         }
@@ -45,7 +47,7 @@ struct TaskDetails: View {
         .navigationTitle("Task Details")
         .toolbar {
             ToolbarItem(placement: .navigationBarTrailing) {
-                NavigationLink(destination: AddTask(viewMode: .edit, task: task)) {
+                NavigationLink(destination: AddTask(viewMode: .edit, taskModel: taskModel)) {
                     Image(systemName: "square.and.pencil")
                         .imageScale(.large)
                         .foregroundColor(.black)
@@ -54,9 +56,30 @@ struct TaskDetails: View {
         }
     }
 
-    private var subTasksList: some View {
+    private func getSubtaskView(subtaskModel: SubtaskModel) -> some View {
+        NavigationLink(destination: SubtaskDetails(subtaskModel: subtaskModel, status: .constant(TaskStatus(rawValue: subtaskModel.status) ?? .pending))) {
+            HStack {
+                Image(systemName: subtaskModel.status == TaskStatus.completed.rawValue ? "checkmark.circle.fill" : "circle")
+                    .foregroundColor(.gray)
+                    .padding(.trailing, 10)
+
+                VStack(alignment: .leading) {
+                    Text(subtaskModel.title)
+                        .font(.body)
+                        .strikethrough(subtaskModel.status == TaskStatus.completed.rawValue, color: .gray)
+
+                    Text(subtaskModel.taskDescription)
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+            }
+            .padding(.vertical, 5)
+        }
+    }
+
+    private var subtasksList: some View {
         Group {
-            if let subTasks = task.subTasks, !subTasks.isEmpty {
+            if !taskModel.subtasks.isEmpty {
                 VStack(alignment: .leading, spacing: 10) {
                     HStack(alignment: .center) {
                         Text("Subtasks")
@@ -65,7 +88,7 @@ struct TaskDetails: View {
 
                         Spacer()
 
-                        NavigationLink(destination: AddSubTask(viewMode: .create)) {
+                        NavigationLink(destination: AddSubtask(viewMode: .create, subtaskModel: SubtaskModel())) {
                             Image(systemName: "plus")
                                 .imageScale(.large)
                                 .frame(width: 30, height: 30)
@@ -75,28 +98,28 @@ struct TaskDetails: View {
                     .padding(.top, 20)
 
                     List {
-                        ForEach(subTasks, id: \.self) { subTask in
-                            NavigationLink(destination: SubTaskDetails(subTask: subTask, status: .constant(subTask.status))) {
-                                HStack {
-                                    Image(systemName: subTask.status == .completed ? "checkmark.circle.fill" : "circle")
-                                        .foregroundColor(.gray)
-                                        .padding(.trailing, 10)
-
-                                    VStack(alignment: .leading) {
-                                        Text(subTask.title)
-                                            .font(.body)
-                                            .strikethrough(subTask.status == .completed, color: .gray)
-
-                                        Text(subTask.description)
-                                            .font(.caption)
-                                            .foregroundColor(.secondary)
-                                    }
-                                }
-                                .padding(.vertical, 5)
-                            }
+                        ForEach(taskModel.subtasks, id: \.self) { subtaskModel in
+                            getSubtaskView(subtaskModel: subtaskModel)
                         }
                         .onDelete { indexSet in
-                            // TODO: Remove SubTask here
+                            guard let firstIndex = indexSet.first else { return }
+                            let subtaskTitle = taskModel.subtasks[firstIndex].title
+                            guard let task = realm?.objects(Task.self).filter({
+                                $0.title == taskModel.title &&
+                                $0.taskDescription == taskModel.taskDescription
+                            }).first else {
+                                return
+                            }
+                            let subtasksToDelete = Array(task.subtasks).filter({
+                                $0.title == subtaskTitle
+                            })
+                            do {
+                                try realm?.write {
+                                    realm?.delete(subtasksToDelete)
+                                }
+                            } catch {
+                                // Handle the error here
+                            }
                         }
                     }
                     .listStyle(.plain)
@@ -108,7 +131,7 @@ struct TaskDetails: View {
 
 #Preview {
     TaskDetails(
-        task: Task.mockTasks.first!,
+        taskModel: TaskModel.generatedTaskModels.first!,
         status: .constant(.completed)
     )
 }

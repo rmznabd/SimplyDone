@@ -5,6 +5,7 @@
 //  Created by Ramazan Abdullayev on 02/03/2025.
 //
 
+import RealmSwift
 import SwiftUI
 
 enum AddTaskViewMode {
@@ -14,11 +15,14 @@ enum AddTaskViewMode {
 
 struct AddTask: View {
     let viewMode: AddTaskViewMode
-    @State private var task: Task
+    private var taskModel: TaskModel
+    @Environment(\.dismiss) private var dismiss
 
-    init(viewMode: AddTaskViewMode, task: Task? = nil) {
+    let realm = try? Realm()
+
+    init(viewMode: AddTaskViewMode, taskModel: TaskModel) {
         self.viewMode = viewMode
-        _task = State(initialValue: task ?? Task(title: "", description: "", dueDate: nil, status: .pending, subTasks: nil))
+        self.taskModel = taskModel
     }
 
     var body: some View {
@@ -32,7 +36,10 @@ struct AddTask: View {
             }
 
             Button {
-                // TODO: Handle Add action here
+                try? realm?.write {
+                    realm?.add(taskModel.toPersistObject())
+                }
+                dismiss()
             } label: {
                 Text(viewMode == .create ? "Add": "Save")
                     .modifier(PrimaryButtonModifier())
@@ -43,13 +50,20 @@ struct AddTask: View {
         }
         .padding()
         .navigationTitle(viewMode == .create ? "Add new Task" : "Edit Task")
+        
     }
 
     private var titleInput: some View {
         VStack(alignment: .leading, spacing: 10) {
             Text("Title")
                 .font(.headline)
-            TextField("Enter task title", text: $task.title)
+            TextField(
+                "Enter task title",
+                text: Binding(
+                    get: { taskModel.title },
+                    set: { taskModel.title = $0 }
+                )
+            )
                 .textFieldStyle(.roundedBorder)
         }
     }
@@ -60,7 +74,12 @@ struct AddTask: View {
                 .font(.headline)
 
             ZStack(alignment: .topLeading) {
-                TextEditor(text: $task.description)
+                TextEditor(
+                    text: Binding(
+                        get: { taskModel.taskDescription },
+                        set: { taskModel.taskDescription = $0 }
+                    )
+                )
                     .frame(minHeight: 100, maxHeight: 200)
                     .multilineTextAlignment(.leading)
                     .padding(6)
@@ -69,7 +88,7 @@ struct AddTask: View {
                             .stroke(Color.gray.opacity(0.5), lineWidth: 0.5)
                     )
 
-                if task.description.isEmpty {
+                if taskModel.taskDescription.isEmpty {
                     Text("Enter task description")
                         .foregroundColor(.gray.opacity(0.5))
                         .padding(.horizontal, 10)
@@ -85,8 +104,8 @@ struct AddTask: View {
                 .bold()
             Spacer()
             DatePicker("", selection: Binding(
-                get: { task.dueDate ?? .now },
-                set: { task.dueDate = $0 }
+                get: { taskModel.dueDate ?? .now },
+                set: { taskModel.dueDate = $0 }
             ), displayedComponents: .date)
                 .labelsHidden()
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -95,7 +114,13 @@ struct AddTask: View {
     }
 
     private var pickerView: some View {
-        Picker("Status", selection: $task.status) {
+        Picker(
+            "Status",
+            selection: Binding(
+                get: { taskModel.status },
+                set: { taskModel.status = $0 }
+            )
+        ) {
             ForEach(TaskStatus.allCases, id: \.self) { status in
                 Text(status.rawValue).tag(status)
             }
@@ -105,5 +130,5 @@ struct AddTask: View {
 }
 
 #Preview {
-    AddTask(viewMode: .edit)
+    AddTask(viewMode: .edit, taskModel: TaskModel(title: "Test", taskDescription: "Test description", subtasks: [SubtaskModel]()))
 }

@@ -1,5 +1,5 @@
 //
-//  SubTaskDetails.swift
+//  SubtaskDetails.swift
 //  SimplyDone
 //
 //  Created by Ramazan Abdullayev on 02/03/2025.
@@ -7,19 +7,19 @@
 
 import SwiftUI
 
-struct SubTaskDetails: View {
-    let subTask: SubTask
+struct SubtaskDetails: View {
+    let subtaskModel: SubtaskModel
     @Binding var status: TaskStatus
 
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
 
-            Text(subTask.title)
+            Text(subtaskModel.title)
                 .font(.title)
                 .fontWeight(.bold)
                 .padding(.top, 20)
 
-            Text(subTask.description)
+            Text(subtaskModel.taskDescription)
                 .font(.body)
                 .foregroundColor(.secondary)
 
@@ -33,10 +33,10 @@ struct SubTaskDetails: View {
             Spacer()
         }
         .padding()
-        .navigationTitle("SubTask Details")
+        .navigationTitle("Subtask Details")
         .toolbar {
             ToolbarItem(placement: .navigationBarTrailing) {
-                NavigationLink(destination: AddSubTask(viewMode: .edit, subTask: subTask)) {
+                NavigationLink(destination: AddSubtask(viewMode: .edit, subtaskModel: subtaskModel)) {
                     Image(systemName: "square.and.pencil")
                         .imageScale(.large)
                         .foregroundColor(.black)
@@ -47,9 +47,9 @@ struct SubTaskDetails: View {
 }
 
 #Preview {
-    let task = Task.mockTasks.first
-    SubTaskDetails(
-        subTask: task!.subTasks!.first!,
-        status: .constant(.completed)
+    let taskModel = TaskModel.generatedTaskModels.first
+    SubtaskDetails(
+        subtaskModel: taskModel!.subtasks.first!,
+        status: .constant(.pending)
     )
 }
