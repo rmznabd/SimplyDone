@@ -10,6 +10,7 @@ import Foundation
 @Observable
 class SubtaskModel: Hashable {
     static func == (lhs: SubtaskModel, rhs: SubtaskModel) -> Bool {
+        lhs.id == rhs.id &&
         lhs.title == rhs.title &&
         lhs.taskDescription == rhs.taskDescription &&
         lhs.dueDate == rhs.dueDate &&
@@ -17,9 +18,10 @@ class SubtaskModel: Hashable {
     }
 
     func hash(into hasher: inout Hasher) {
-        hasher.combine(title + taskDescription)
+        hasher.combine(id)
     }
 
+    let id = UUID()
     var title: String
     var taskDescription: String
     var dueDate: Date?

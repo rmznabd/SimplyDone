@@ -20,6 +20,7 @@ class TaskListViewController: UIViewController {
         tableView.delegate = self
         tableView.dataSource = self
         tableView.frame = view.bounds
+        tableView.separatorColor = .clear
         tableView.register(TaskCell.self, forCellReuseIdentifier: TaskCell.reuseIdentifier)
         tableView.register(SubtaskCell.self, forCellReuseIdentifier: SubtaskCell.reuseIdentifier)
 
@@ -88,12 +89,14 @@ extension TaskListViewController: UITableViewDataSource, UITableViewDelegate {
             // Main Task Cell
             let cell = tableView.dequeueReusableCell(withIdentifier: TaskCell.reuseIdentifier, for: indexPath) as! TaskCell
             cell.configure(with: taskModel)
+            cell.selectionStyle = .none
             return cell
         } else {
             // Subtask Cell
             let subtaskModel = taskModel.subtasks[indexPath.row - 1]
             let cell = tableView.dequeueReusableCell(withIdentifier: SubtaskCell.reuseIdentifier, for: indexPath) as! SubtaskCell
             cell.configure(with: subtaskModel)
+            cell.selectionStyle = .none
             return cell
         }
     }
@@ -125,23 +128,15 @@ extension TaskListViewController: UITableViewDataSource, UITableViewDelegate {
 
         if indexPath.row == 0 {
             // Show Task Details
-            let taskDetailsScreen = UIHostingController(
-                rootView: TaskDetails(
-                    taskModel: taskModel,
-                    status: .constant(TaskStatus(rawValue: taskModel.status) ?? .pending)
-                )
-            )
+            let taskDetailsScreen = UIHostingController(rootView: TaskDetails(taskModel: taskModel))
+
             taskDetailsScreen.navigationItem.largeTitleDisplayMode = .never
             self.navigationController?.pushViewController(taskDetailsScreen, animated: true)
         } else {
             // Show Subtask Details
             let subtaskModel = taskModel.subtasks[indexPath.row - 1]
-            let subtaskDetailsScreen = UIHostingController(
-                rootView: SubtaskDetails(
-                    subtaskModel: subtaskModel,
-                    status: .constant(TaskStatus(rawValue: subtaskModel.status) ?? .pending)
-                )
-            )
+            let subtaskDetailsScreen = UIHostingController(rootView: SubtaskDetails(subtaskModel: subtaskModel))
+
             subtaskDetailsScreen.navigationItem.largeTitleDisplayMode = .never
             self.navigationController?.pushViewController(subtaskDetailsScreen, animated: true)
         }

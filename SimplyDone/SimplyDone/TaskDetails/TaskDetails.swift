@@ -10,34 +10,40 @@ import SwiftUI
 
 struct TaskDetails: View {
     let taskModel: TaskModel
-    @Binding var status: TaskStatus
     let realm = try? Realm()
 
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
 
-            Text(taskModel.title)
-                .font(.title)
-                .fontWeight(.bold)
-                .padding(.top, 20)
+            HStack(alignment: .center) {
+                Image(systemName: taskModel.status == TaskStatus.completed.rawValue ? "checkmark.square.fill": "square")
+                    .imageScale(.large)
+                    .frame(width: 30, height: 30)
+                    .foregroundColor(Color(UIColor.darkGray))
+                    .onTapGesture {
+                        taskModel.status.toggleStatus()
+                    }
+                
+                Text(taskModel.title)
+                    .font(.title)
+                    .fontWeight(.bold)
+            }
+            .padding(.top, 20)
 
             Text(taskModel.taskDescription)
                 .font(.body)
                 .foregroundColor(.secondary)
+                .padding()
 
             HStack {
-                Image(systemName: "calendar")
-                Text("Due Date: \(taskModel.dueDate?.formatted(date: .abbreviated, time: .omitted) ?? "No Due Date")")
+                Image(systemName: taskModel.dueDate == nil ? "calendar.badge.exclamationmark" : "calendar")
+                Text("\(taskModel.dueDate?.formatted(date: .abbreviated, time: .omitted) ?? "No Due Date")")
                     .font(.subheadline)
                     .foregroundColor(.secondary)
             }
+            .padding(.top, 10)
 
-            Picker("Status", selection: $status) {
-                ForEach(TaskStatus.allCases, id: \.self) { status in
-                    Text(status.rawValue).tag(status)
-                }
-            }
-            .pickerStyle(.segmented)
+            Divider()
 
             subtasksList
 
@@ -56,47 +62,26 @@ struct TaskDetails: View {
         }
     }
 
-    private func getSubtaskView(subtaskModel: SubtaskModel) -> some View {
-        NavigationLink(destination: SubtaskDetails(subtaskModel: subtaskModel, status: .constant(TaskStatus(rawValue: subtaskModel.status) ?? .pending))) {
-            HStack {
-                Image(systemName: subtaskModel.status == TaskStatus.completed.rawValue ? "checkmark.circle.fill" : "circle")
-                    .foregroundColor(.gray)
-                    .padding(.trailing, 10)
-
-                VStack(alignment: .leading) {
-                    Text(subtaskModel.title)
-                        .font(.body)
-                        .strikethrough(subtaskModel.status == TaskStatus.completed.rawValue, color: .gray)
-
-                    Text(subtaskModel.taskDescription)
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                }
-            }
-            .padding(.vertical, 5)
-        }
-    }
-
     private var subtasksList: some View {
         Group {
+            HStack(alignment: .center) {
+                Text("Subtasks")
+                    .font(.title2)
+                    .fontWeight(.bold)
+                
+                Spacer()
+                
+                NavigationLink(destination: AddSubtask(viewMode: .create, subtaskModel: SubtaskModel())) {
+                    Image(systemName: "plus")
+                        .imageScale(.large)
+                        .frame(width: 30, height: 30)
+                        .foregroundColor(.black)
+                }
+            }
+            .padding(.horizontal, 10)
+
             if !taskModel.subtasks.isEmpty {
                 VStack(alignment: .leading, spacing: 10) {
-                    HStack(alignment: .center) {
-                        Text("Subtasks")
-                            .font(.title2)
-                            .fontWeight(.bold)
-
-                        Spacer()
-
-                        NavigationLink(destination: AddSubtask(viewMode: .create, subtaskModel: SubtaskModel())) {
-                            Image(systemName: "plus")
-                                .imageScale(.large)
-                                .frame(width: 30, height: 30)
-                                .foregroundColor(.black)
-                        }
-                    }
-                    .padding(.top, 20)
-
                     List {
                         ForEach(taskModel.subtasks, id: \.self) { subtaskModel in
                             getSubtaskView(subtaskModel: subtaskModel)
@@ -124,14 +109,45 @@ struct TaskDetails: View {
                     }
                     .listStyle(.plain)
                 }
+            } else {
+                VStack(alignment: .center) {
+                    Image(systemName: "tray.fill")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 50, height: 50)
+                        .foregroundColor(.gray)
+                    
+                    Text("No subtasks")
+                        .font(.headline)
+                        .foregroundColor(.gray)
+                        .padding(.top, 5)
+                }
+                .frame(maxWidth: .infinity, minHeight: 150)
             }
+        }
+    }
+
+    private func getSubtaskView(subtaskModel: SubtaskModel) -> some View {
+        NavigationLink(destination: SubtaskDetails(subtaskModel: subtaskModel)) {
+            HStack {
+                Image(systemName: subtaskModel.status == TaskStatus.completed.rawValue ? "checkmark.square.fill" : "square")
+                    .foregroundColor(.gray)
+                    .padding(.trailing, 10)
+                    .onTapGesture {
+                        if let taskIndex = taskModel.subtasks.firstIndex(where: { $0.id == subtaskModel.id }) {
+                            self.taskModel.subtasks[taskIndex].status.toggleStatus()
+                        }
+                    }
+
+                Text(subtaskModel.title)
+                    .font(.body)
+                    .strikethrough(subtaskModel.status == TaskStatus.completed.rawValue, color: .gray)
+            }
+            .padding(.vertical, 5)
         }
     }
 }
 
 #Preview {
-    TaskDetails(
-        taskModel: TaskModel.generatedTaskModels.first!,
-        status: .constant(.completed)
-    )
+    TaskDetails(taskModel: TaskModel.generatedTaskModels.first!)
 }

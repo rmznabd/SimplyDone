@@ -31,9 +31,7 @@ struct AddTask: View {
             descriptionInput
             dueDateInput
 
-            if viewMode == .edit {
-                pickerView
-            }
+            Spacer()
 
             Button {
                 try? realm?.write {
@@ -44,9 +42,6 @@ struct AddTask: View {
                 Text(viewMode == .create ? "Add": "Save")
                     .modifier(PrimaryButtonModifier())
             }
-            .padding(.top, 70)
-
-            Spacer()
         }
         .padding()
         .navigationTitle(viewMode == .create ? "Add new Task" : "Edit Task")
@@ -111,21 +106,6 @@ struct AddTask: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.leading, 16)
         }
-    }
-
-    private var pickerView: some View {
-        Picker(
-            "Status",
-            selection: Binding(
-                get: { taskModel.status },
-                set: { taskModel.status = $0 }
-            )
-        ) {
-            ForEach(TaskStatus.allCases, id: \.self) { status in
-                Text(status.rawValue).tag(status)
-            }
-        }
-        .pickerStyle(.segmented)
     }
 }
 

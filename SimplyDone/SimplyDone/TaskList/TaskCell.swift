@@ -12,9 +12,18 @@ class TaskCell: UITableViewCell {
 
     private lazy var titleLabel: UILabel = {
         let label = UILabel()
+        label.numberOfLines = 0
         label.font = .boldSystemFont(ofSize: 16)
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
+    }()
+
+    private lazy var dueDateIcon: UIImageView = {
+        let imageView = UIImageView()
+        imageView.image = UIImage(systemName: "calendar")
+        imageView.tintColor = .darkGray
+        imageView.translatesAutoresizingMaskIntoConstraints = false
+        return imageView
     }()
 
     private lazy var dueDateLabel: UILabel = {
@@ -27,7 +36,7 @@ class TaskCell: UITableViewCell {
 
     private lazy var radioButton: UIButton = {
         let button = UIButton(type: .system)
-        button.setImage(UIImage(systemName: "circle"), for: .normal) // Empty by default
+        button.setImage(UIImage(systemName: "square"), for: .normal)
         button.tintColor = .gray
         button.translatesAutoresizingMaskIntoConstraints = false
         button.addTarget(self, action: #selector(didTapRadioButton), for: .touchUpInside)
@@ -51,6 +60,7 @@ class TaskCell: UITableViewCell {
     private func setupUI() {
         contentView.addSubview(radioButton)
         contentView.addSubview(titleLabel)
+        contentView.addSubview(dueDateIcon)
         contentView.addSubview(dueDateLabel)
 
         NSLayoutConstraint.activate([
@@ -59,20 +69,29 @@ class TaskCell: UITableViewCell {
             radioButton.widthAnchor.constraint(equalToConstant: 24),
             radioButton.heightAnchor.constraint(equalToConstant: 24),
 
+            titleLabel.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 12),
             titleLabel.leadingAnchor.constraint(equalTo: radioButton.trailingAnchor, constant: 12),
             titleLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
-            titleLabel.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 12),
 
-            dueDateLabel.leadingAnchor.constraint(equalTo: titleLabel.leadingAnchor),
-            dueDateLabel.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 4),
-            dueDateLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
-            dueDateLabel.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -12)
+            dueDateIcon.leadingAnchor.constraint(equalTo: titleLabel.leadingAnchor),
+            dueDateIcon.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 6),
+            dueDateIcon.widthAnchor.constraint(equalToConstant: 16),
+            dueDateIcon.heightAnchor.constraint(equalToConstant: 16),
+
+            dueDateLabel.leadingAnchor.constraint(equalTo: dueDateIcon.trailingAnchor, constant: 6),
+            dueDateLabel.centerYAnchor.constraint(equalTo: dueDateIcon.centerYAnchor)
         ])
     }
 
     func configure(with taskModel: TaskModel) {
         titleLabel.text = taskModel.title
-        dueDateLabel.text = taskModel.dueDate != nil ? "Due: \(formattedDate(taskModel.dueDate!))" : "No due date"
+
+        if let dueDate = taskModel.dueDate {
+            dueDateLabel.text = formattedDate(dueDate)
+        } else {
+            dueDateIcon.image = UIImage(systemName: "calendar.badge.exclamationmark")
+            dueDateLabel.text = "No due date"
+        }
 
         if taskModel.status == TaskStatus.completed.rawValue {
             titleLabel.textColor = .gray
@@ -80,11 +99,11 @@ class TaskCell: UITableViewCell {
                 string: taskModel.title,
                 attributes: [.strikethroughStyle: NSUnderlineStyle.single.rawValue]
             )
-            radioButton.setImage(UIImage(systemName: "checkmark.circle.fill"), for: .normal)
+            radioButton.setImage(UIImage(systemName: "checkmark.square.fill"), for: .normal)
             radioButton.tintColor = .darkGray
         } else {
             titleLabel.textColor = .black
-            radioButton.setImage(UIImage(systemName: "circle"), for: .normal)
+            radioButton.setImage(UIImage(systemName: "square"), for: .normal)
             radioButton.tintColor = .gray
         }
     }

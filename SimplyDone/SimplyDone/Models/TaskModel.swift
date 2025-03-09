@@ -12,6 +12,16 @@ enum TaskStatus: String, CaseIterable {
     case completed = "Completed"
 }
 
+// MARK: - Status togglers
+
+extension String {
+    mutating func toggleStatus() {
+        self = self == TaskStatus.completed.rawValue ?
+        TaskStatus.pending.rawValue :
+        TaskStatus.completed.rawValue
+    }
+}
+
 @Observable
 class TaskModel {
     var title: String
@@ -71,7 +81,7 @@ extension TaskModel {
         ]
         var taskModel1 = TaskModel(
             title: "Decide MeetUp topic",
-            taskDescription: "Research to find attractive topic to talk about",
+            taskDescription: "Research to find attractive topic to talk about ak nalsd lskd alsk nalksn dalskn calksnc alksdnc lksnc alksnc alk ncalkn clsknc aslknc alksnc alsknc alkc l l clsckn alsknc lskcn alsckn lscn alc.",
             dueDate: Date(),
             status: TaskStatus.pending.rawValue,
             subtasks: subtaskModels1
