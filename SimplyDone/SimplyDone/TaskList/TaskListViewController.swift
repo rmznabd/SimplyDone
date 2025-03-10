@@ -34,7 +34,7 @@ class TaskListViewController: UIViewController {
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
 
-        viewModel.generateTasks()
+        viewModel.generateRealmTasks()
         tableView.reloadData()
     }
 
@@ -73,6 +73,11 @@ extension TaskListViewController: UITableViewDataSource, UITableViewDelegate {
             // Main Task Cell
             let cell = tableView.dequeueReusableCell(withIdentifier: TaskCell.reuseIdentifier, for: indexPath) as! TaskCell
             cell.configure(with: taskModel)
+            cell.onRadioButtonTappedCallback = { [weak self] in
+                taskModel.status.toggleStatus()
+                cell.configure(with: taskModel)
+                self?.viewModel.updateRealmTaskStatus(for: taskModel)
+            }
             cell.selectionStyle = .none
             return cell
         } else {
@@ -80,6 +85,11 @@ extension TaskListViewController: UITableViewDataSource, UITableViewDelegate {
             let subtaskModel = taskModel.subtasks[indexPath.row - 1]
             let cell = tableView.dequeueReusableCell(withIdentifier: SubtaskCell.reuseIdentifier, for: indexPath) as! SubtaskCell
             cell.configure(with: subtaskModel)
+            cell.onRadioButtonTappedCallback = { [weak self] in
+                subtaskModel.status.toggleStatus()
+                cell.configure(with: subtaskModel)
+                self?.viewModel.updateRealmSubtaskStatus(for: subtaskModel, parentTaskModel: taskModel)
+            }
             cell.selectionStyle = .none
             return cell
         }
@@ -93,13 +103,13 @@ extension TaskListViewController: UITableViewDataSource, UITableViewDelegate {
         if editingStyle == .delete {
             let taskModel = viewModel.getTaskModel(in: indexPath.section)
             if indexPath.row == 0 {
-                viewModel.deleteTask(for: taskModel)
+                viewModel.deleteRealmTask(for: taskModel)
             } else {
                 let subtaskModel = taskModel.subtasks[indexPath.row - 1]
-                viewModel.deleteSubtask(for: subtaskModel,
+                viewModel.deleteRealmSubtask(for: subtaskModel,
                               parentTaskModel: taskModel)
             }
-            viewModel.generateTasks()
+            viewModel.generateRealmTasks()
             tableView.reloadData()
         }
     }

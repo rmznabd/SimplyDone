@@ -10,6 +10,8 @@ import UIKit
 class SubtaskCell: UITableViewCell {
     static let reuseIdentifier = "SubtaskCell"
 
+    var onRadioButtonTappedCallback: (() -> Void)?
+
     private lazy var titleLabel: UILabel = {
         let label = UILabel()
         label.font = .systemFont(ofSize: 14)
@@ -57,10 +59,10 @@ class SubtaskCell: UITableViewCell {
     }
 
     func configure(with subtaskModel: SubtaskModel) {
-        titleLabel.text = subtaskModel.title
 
         if subtaskModel.status == TaskStatus.completed.rawValue {
             titleLabel.textColor = .gray
+            titleLabel.text = ""
             titleLabel.attributedText = NSAttributedString(
                 string: subtaskModel.title,
                 attributes: [.strikethroughStyle: NSUnderlineStyle.single.rawValue]
@@ -69,6 +71,8 @@ class SubtaskCell: UITableViewCell {
             radioButton.tintColor = .darkGray
         } else {
             titleLabel.textColor = .black
+            titleLabel.attributedText = NSMutableAttributedString(string: "", attributes: [:])
+            titleLabel.text = subtaskModel.title
             radioButton.setImage(UIImage(systemName: "square"), for: .normal)
             radioButton.tintColor = .gray
         }
@@ -76,7 +80,6 @@ class SubtaskCell: UITableViewCell {
 
     @objc
     private func didTapRadioButton() {
-        print("Subtask radio button tapped")
-        // TODO: Handle radio button action here
+        onRadioButtonTappedCallback?()
     }
 }

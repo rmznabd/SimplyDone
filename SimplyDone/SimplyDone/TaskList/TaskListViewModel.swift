@@ -15,7 +15,7 @@ final class TaskListViewModel {
 
     let realm = try? Realm()
 
-    func generateTasks() {
+    func generateRealmTasks() {
         if let result = realm?.objects(Task.self), !result.isEmpty {
             taskModels = Array(result).compactMap { TaskModel(realmObject: $0) }
         } else {
@@ -28,7 +28,7 @@ final class TaskListViewModel {
         }
     }
 
-    func deleteTask(for taskModel: TaskModel) {
+    func deleteRealmTask(for taskModel: TaskModel) {
         guard let tasksToDelete = realm?.objects(Task.self).filter({
             $0.id == taskModel.id
         }) else { return }
@@ -42,19 +42,52 @@ final class TaskListViewModel {
         }
     }
 
-    func deleteSubtask(for subtaskModel: SubtaskModel,
+    func deleteRealmSubtask(for subtaskModel: SubtaskModel,
                        parentTaskModel: TaskModel) {
         guard let task = realm?.objects(Task.self).filter({
             $0.id == parentTaskModel.id
-        }).first else {
-            return
-        }
+        }).first else { return }
+
         let subtasksToDelete = Array(task.subtasks).filter({
             $0.id == subtaskModel.id
         })
+
         do {
             try realm?.write {
                 realm?.delete(subtasksToDelete)
+            }
+        } catch {
+            // Handle the error here
+        }
+    }
+
+    func updateRealmTaskStatus(for taskModel: TaskModel) {
+        guard let task = realm?.objects(Task.self).filter({
+            $0.id == taskModel.id
+        }).first else { return }
+
+        do {
+            try realm?.write {
+                task.status = taskModel.status
+            }
+        } catch {
+            // Handle the error here
+        }
+    }
+
+    func updateRealmSubtaskStatus(for subtaskModel: SubtaskModel,
+                                  parentTaskModel: TaskModel) {
+        guard let task = realm?.objects(Task.self).filter({
+            $0.id == parentTaskModel.id
+        }).first else { return }
+
+        guard let subtask = Array(task.subtasks).filter({
+            $0.id == subtaskModel.id
+        }).first else { return }
+
+        do {
+            try realm?.write {
+                subtask.status = subtaskModel.status
             }
         } catch {
             // Handle the error here
