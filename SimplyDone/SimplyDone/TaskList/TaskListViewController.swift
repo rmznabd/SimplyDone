@@ -127,7 +127,7 @@ extension TaskListViewController: UITableViewDataSource, UITableViewDelegate {
             // Show Subtask Details
             let subtaskModel = taskModel.subtasks[indexPath.row - 1]
             let subtaskDetailsScreen = UIHostingController(
-                rootView: SubtaskDetails(parentTaskModel: taskModel, subtaskModel: subtaskModel)
+                rootView: SubtaskDetails(viewModel: SubtaskDetailsViewModel(parentTaskModel: taskModel, subtaskModel: subtaskModel))
             )
 
             subtaskDetailsScreen.navigationItem.largeTitleDisplayMode = .never

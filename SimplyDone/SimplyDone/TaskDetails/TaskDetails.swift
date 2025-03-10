@@ -119,9 +119,12 @@ struct TaskDetails: View {
     }
 
     private func getSubtaskView(subtaskModel: SubtaskModel) -> some View {
-        NavigationLink(destination: SubtaskDetails(parentTaskModel: viewModel.taskModel,
-                                                   subtaskModel: subtaskModel)
-        ) {
+        NavigationLink(destination: SubtaskDetails(
+            viewModel: SubtaskDetailsViewModel(
+                parentTaskModel: viewModel.taskModel,
+                subtaskModel: subtaskModel
+            )
+        )) {
             HStack {
                 Image(systemName: subtaskModel.status == TaskStatus.completed.rawValue ? "checkmark.square.fill" : "square")
                     .foregroundColor(.gray)
