@@ -62,7 +62,6 @@ class SubtaskCell: UITableViewCell {
 
         if subtaskModel.status == TaskStatus.completed.rawValue {
             titleLabel.textColor = .gray
-            titleLabel.text = ""
             titleLabel.attributedText = NSAttributedString(
                 string: subtaskModel.title,
                 attributes: [.strikethroughStyle: NSUnderlineStyle.single.rawValue]
@@ -71,7 +70,7 @@ class SubtaskCell: UITableViewCell {
             radioButton.tintColor = .darkGray
         } else {
             titleLabel.textColor = .black
-            titleLabel.attributedText = NSMutableAttributedString(string: "", attributes: [:])
+            titleLabel.attributedText = NSMutableAttributedString(string: subtaskModel.title, attributes: [:])
             titleLabel.text = subtaskModel.title
             radioButton.setImage(UIImage(systemName: "square"), for: .normal)
             radioButton.tintColor = .gray

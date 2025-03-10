@@ -119,7 +119,7 @@ extension TaskListViewController: UITableViewDataSource, UITableViewDelegate {
 
         if indexPath.row == 0 {
             // Show Task Details
-            let taskDetailsScreen = UIHostingController(rootView: TaskDetails(taskModel: taskModel))
+            let taskDetailsScreen = UIHostingController(rootView: TaskDetails(viewModel: TaskDetailsViewModel(taskModel: taskModel)))
 
             taskDetailsScreen.navigationItem.largeTitleDisplayMode = .never
             self.navigationController?.pushViewController(taskDetailsScreen, animated: true)
