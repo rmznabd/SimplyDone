@@ -11,18 +11,44 @@ import SwiftUI
 enum AddTaskViewMode {
     case create
     case edit
+
+    var bottomButtonTitle: String {
+        switch self {
+        case .create:
+            return "Add"
+        case .edit:
+            return "Save"
+        }
+    }
+
+    var navigationTitle: String {
+        switch self {
+        case .create:
+            return "Add new task"
+        case .edit:
+            return "Edit task"
+        }
+    }
 }
 
 struct AddTask: View {
-    let viewMode: AddTaskViewMode
     private var taskModel: TaskModel
+
     @Environment(\.dismiss) private var dismiss
+
+    @State private var viewMode: AddTaskViewMode
+    @State private var taskModelTitle: String
+    @State private var taskModelDescription: String
+    @State private var taskModelDueDate: Date?
 
     let realm = try? Realm()
 
     init(viewMode: AddTaskViewMode, taskModel: TaskModel) {
         self.viewMode = viewMode
         self.taskModel = taskModel
+        self.taskModelTitle = taskModel.title
+        self.taskModelDescription = taskModel.taskDescription
+        self.taskModelDueDate = taskModel.dueDate
     }
 
     var body: some View {
@@ -35,17 +61,29 @@ struct AddTask: View {
 
             Button {
                 // TODO: question to Ramazan: should we add or edit the task when title or description is empty?
+                taskModel.title = taskModelTitle
+                taskModel.taskDescription = taskModelDescription
+                taskModel.dueDate = taskModelDueDate
                 try? realm?.write {
-                    realm?.add(taskModel.toPersistObject())
+                    if viewMode == .create {
+                        realm?.add(taskModel.toPersistObject())
+                    } else {
+                        guard let task = realm?.objects(Task.self).filter({
+                            $0.id == taskModel.id
+                        }).first else { return }
+                        task.title = taskModelTitle
+                        task.taskDescription = taskModelDescription
+                        task.dueDate = taskModelDueDate
+                    }
                 }
                 dismiss()
             } label: {
-                Text(viewMode == .create ? "Add": "Save")
+                Text(viewMode.bottomButtonTitle)
                     .modifier(PrimaryButtonModifier())
             }
         }
         .padding()
-        .navigationTitle(viewMode == .create ? "Add new Task" : "Edit Task")
+        .navigationTitle(viewMode.navigationTitle)
         
     }
 
@@ -53,13 +91,7 @@ struct AddTask: View {
         VStack(alignment: .leading, spacing: 10) {
             Text("Title")
                 .font(.headline)
-            TextField(
-                "Enter task title",
-                text: Binding(
-                    get: { taskModel.title },
-                    set: { taskModel.title = $0 }
-                )
-            )
+            TextField("Enter task title", text: $taskModelTitle)
                 .textFieldStyle(.roundedBorder)
         }
     }
@@ -71,10 +103,7 @@ struct AddTask: View {
 
             ZStack(alignment: .topLeading) {
                 TextEditor(
-                    text: Binding(
-                        get: { taskModel.taskDescription },
-                        set: { taskModel.taskDescription = $0 }
-                    )
+                    text: $taskModelDescription
                 )
                     .frame(minHeight: 100, maxHeight: 200)
                     .multilineTextAlignment(.leading)
@@ -100,8 +129,8 @@ struct AddTask: View {
                 .bold()
             Spacer()
             DatePicker("", selection: Binding(
-                get: { taskModel.dueDate ?? .now },
-                set: { taskModel.dueDate = $0 }
+                get: { taskModelDueDate ?? .now },
+                set: { taskModelDueDate = $0 }
             ), displayedComponents: .date)
                 .labelsHidden()
                 .frame(maxWidth: .infinity, alignment: .leading)

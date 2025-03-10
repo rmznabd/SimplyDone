@@ -11,14 +11,37 @@ import SwiftUI
 enum AddSubtaskViewMode {
     case create
     case edit
+    
+    var bottomButtonTitle: String {
+        switch self {
+        case .create:
+            return "Add"
+        case .edit:
+            return "Save"
+        }
+    }
+
+    var navigationTitle: String {
+        switch self {
+        case .create:
+            return "Add new subtask"
+        case .edit:
+            return "Edit subtask"
+        }
+    }
 }
 
 struct AddSubtask: View {
-    let viewMode: AddSubtaskViewMode
     private var parentTaskModel: TaskModel
     private var subtaskModel: SubtaskModel
-    let realm = try? Realm()
+
     @Environment(\.dismiss) private var dismiss
+
+    @State private var viewMode: AddSubtaskViewMode
+    @State private var subtaskModelTitle: String
+    @State private var subtaskModelDescription: String
+
+    let realm = try? Realm()
 
     init(
         viewMode: AddSubtaskViewMode,
@@ -28,6 +51,8 @@ struct AddSubtask: View {
         self.viewMode = viewMode
         self.parentTaskModel = parentTaskModel
         self.subtaskModel = subtaskModel
+        self.subtaskModelTitle = subtaskModel.title
+        self.subtaskModelDescription = subtaskModel.taskDescription
     }
 
     var body: some View {
@@ -38,18 +63,18 @@ struct AddSubtask: View {
             Spacer()
 
             Button {
+                subtaskModel.title = subtaskModelTitle
+                subtaskModel.taskDescription = subtaskModelDescription
+                guard let task = realm?.objects(Task.self).filter({
+                    $0.id == parentTaskModel.id
+                }).first else { return }
                 try? realm?.write {
                     // TODO: question to Ramazan: should we add or edit the subtask when title or description is empty?
-                    guard let task = realm?.objects(Task.self).filter({
-                        $0.id == parentTaskModel.id
-                    }).first else { return }
-
                     if let subtask = Array(task.subtasks).filter({
                         $0.id == subtaskModel.id
                     }).first {
                         subtask.title = subtaskModel.title
                         subtask.taskDescription = subtaskModel.taskDescription
-                        subtask.dueDate = subtaskModel.dueDate
                     } else {
                         parentTaskModel.subtasks.append(subtaskModel)
                         task.subtasks.append(subtaskModel.toPersistObject())
@@ -57,12 +82,12 @@ struct AddSubtask: View {
                 }
                 dismiss()
             } label: {
-                Text(viewMode == .create ? "Add" : "Save")
+                Text(viewMode.bottomButtonTitle)
                     .modifier(PrimaryButtonModifier())
             }
         }
         .padding()
-        .navigationTitle(viewMode == .create ? "Add new Subtask" : "Edit Subtask")
+        .navigationTitle(viewMode.navigationTitle)
     }
 
     private var titleInput: some View {
@@ -71,10 +96,7 @@ struct AddSubtask: View {
                 .font(.headline)
             TextField(
                 "Enter task title",
-                text: Binding(
-                    get: { subtaskModel.title },
-                    set: { subtaskModel.title = $0 }
-                )
+                text: $subtaskModelTitle
             )
                 .textFieldStyle(.roundedBorder)
         }
@@ -87,10 +109,7 @@ struct AddSubtask: View {
 
             ZStack(alignment: .topLeading) {
                 TextEditor(
-                    text: Binding(
-                        get: { subtaskModel.taskDescription },
-                        set: { subtaskModel.taskDescription = $0 }
-                    )
+                    text: $subtaskModelDescription
                 )
                     .frame(minHeight: 100, maxHeight: 200)
                     .multilineTextAlignment(.leading)
