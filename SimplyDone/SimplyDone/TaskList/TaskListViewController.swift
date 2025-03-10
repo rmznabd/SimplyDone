@@ -11,9 +11,7 @@ import UIKit
 
 class TaskListViewController: UIViewController {
 
-    private var taskModels = [TaskModel]()
-
-    let realm = try? Realm()
+    private var viewModel = TaskListViewModel()
 
     private lazy var tableView: UITableView = {
         let tableView = UITableView()
@@ -35,7 +33,9 @@ class TaskListViewController: UIViewController {
 
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        generateTasks()
+
+        viewModel.generateTasks()
+        tableView.reloadData()
     }
 
     private func setupUI() {
@@ -55,34 +55,19 @@ class TaskListViewController: UIViewController {
         addTaskScreen.navigationItem.largeTitleDisplayMode = .never
         navigationController?.pushViewController(addTaskScreen, animated: true)
     }
-
-    private func generateTasks() {
-        if let result = realm?.objects(Task.self), !result.isEmpty {
-            taskModels = Array(result).compactMap { TaskModel(realmObject: $0) }
-        } else {
-            taskModels = TaskModel.generatedTaskModels
-            taskModels.forEach({ taskModel in
-                try? realm?.write {
-                    realm?.add(taskModel.toPersistObject())
-                }
-            })
-        }
-        tableView.reloadData()
-    }
 }
 
 extension TaskListViewController: UITableViewDataSource, UITableViewDelegate {
     func numberOfSections(in tableView: UITableView) -> Int {
-        return taskModels.count
+        viewModel.numberOfSections
     }
  
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        let taskModel = taskModels[section]
-        return taskModel.subtasks.count + 1
+        viewModel.getNumberOfRows(in: section)
     }
 
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let taskModel = taskModels[indexPath.section]
+        let taskModel = viewModel.getTaskModel(in: indexPath.section)
 
         if indexPath.row == 0 {
             // Main Task Cell
@@ -101,50 +86,26 @@ extension TaskListViewController: UITableViewDataSource, UITableViewDelegate {
     }
 
     func tableView(_ tableView: UITableView, canEditRowAt indexPath: IndexPath) -> Bool {
-        return true
+        true
     }
 
     func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
         if editingStyle == .delete {
+            let taskModel = viewModel.getTaskModel(in: indexPath.section)
             if indexPath.row == 0 {
-                let taskModel = taskModels[indexPath.section]
-                guard let tasksToDelete = realm?.objects(Task.self).filter({
-                    $0.id == taskModel.id
-                }) else {
-                    return
-                }
-                do {
-                    try realm?.write {
-                        realm?.delete(tasksToDelete)
-                    }
-                } catch {
-                    // Handle the error here
-                }
+                viewModel.deleteTask(for: taskModel)
             } else {
-                let taskModel = taskModels[indexPath.section]
                 let subtaskModel = taskModel.subtasks[indexPath.row - 1]
-                guard let task = realm?.objects(Task.self).filter({
-                    $0.id == taskModel.id
-                }).first else {
-                    return
-                }
-                let subtasksToDelete = Array(task.subtasks).filter({
-                    $0.id == subtaskModel.id
-                })
-                do {
-                    try realm?.write {
-                        realm?.delete(subtasksToDelete)
-                    }
-                } catch {
-                    // Handle the error here
-                }
+                viewModel.deleteSubtask(for: subtaskModel,
+                              parentTaskModel: taskModel)
             }
-            generateTasks()
+            viewModel.generateTasks()
+            tableView.reloadData()
         }
     }
 
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        let taskModel = taskModels[indexPath.section]
+        let taskModel = viewModel.getTaskModel(in: indexPath.section)
 
         if indexPath.row == 0 {
             // Show Task Details
@@ -165,6 +126,6 @@ extension TaskListViewController: UITableViewDataSource, UITableViewDelegate {
     }
 
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
-        return indexPath.row == 0 ? 70 : 50
+        indexPath.row == 0 ? 70 : 50
     }
 }
