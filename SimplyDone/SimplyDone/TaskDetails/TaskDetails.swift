@@ -5,37 +5,39 @@
 //  Created by Ramazan Abdullayev on 01/03/2025.
 //
 
+import RealmSwift
 import SwiftUI
 
 struct TaskDetails: View {
-    @State var task: Task
+    let taskModel: TaskModel
+    let realm = try? Realm()
 
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
 
             HStack(alignment: .center) {
-                Image(systemName: task.status == .completed ? "checkmark.square.fill": "square")
+                Image(systemName: taskModel.status == TaskStatus.completed.rawValue ? "checkmark.square.fill": "square")
                     .imageScale(.large)
                     .frame(width: 30, height: 30)
                     .foregroundColor(Color(UIColor.darkGray))
                     .onTapGesture {
-                        task.status.toggle()
+                        taskModel.status.toggleStatus()
                     }
-
-                Text(task.title)
+                
+                Text(taskModel.title)
                     .font(.title)
                     .fontWeight(.bold)
             }
             .padding(.top, 20)
 
-            Text(task.description)
+            Text(taskModel.taskDescription)
                 .font(.body)
                 .foregroundColor(.secondary)
                 .padding()
 
             HStack {
-                Image(systemName: task.dueDate == nil ? "calendar.badge.exclamationmark" : "calendar")
-                Text("\(task.dueDate?.formatted(date: .abbreviated, time: .omitted) ?? "No Due Date")")
+                Image(systemName: taskModel.dueDate == nil ? "calendar.badge.exclamationmark" : "calendar")
+                Text("\(taskModel.dueDate?.formatted(date: .abbreviated, time: .omitted) ?? "No Due Date")")
                     .font(.subheadline)
                     .foregroundColor(.secondary)
             }
@@ -43,7 +45,7 @@ struct TaskDetails: View {
 
             Divider()
 
-            subTasksList
+            subtasksList
 
             Spacer()
         }
@@ -51,7 +53,7 @@ struct TaskDetails: View {
         .navigationTitle("Task Details")
         .toolbar {
             ToolbarItem(placement: .navigationBarTrailing) {
-                NavigationLink(destination: AddTask(viewMode: .edit, task: task)) {
+                NavigationLink(destination: AddTask(viewMode: .edit, taskModel: taskModel)) {
                     Image(systemName: "square.and.pencil")
                         .imageScale(.large)
                         .foregroundColor(.black)
@@ -60,16 +62,22 @@ struct TaskDetails: View {
         }
     }
 
-    private var subTasksList: some View {
+    private var subtasksList: some View {
         Group {
             HStack(alignment: .center) {
                 Text("Subtasks")
                     .font(.title2)
                     .fontWeight(.bold)
-
+                
                 Spacer()
-
-                NavigationLink(destination: AddSubTask(viewMode: .create)) {
+                
+                NavigationLink(
+                    destination: AddSubtask(
+                    viewMode: .create,
+                    parentTaskModel: taskModel,
+                    subtaskModel: SubtaskModel(id: UUID())
+                    )
+                ) {
                     Image(systemName: "plus")
                         .imageScale(.large)
                         .frame(width: 30, height: 30)
@@ -78,31 +86,30 @@ struct TaskDetails: View {
             }
             .padding(.horizontal, 10)
 
-            if let subTasks = task.subTasks, !subTasks.isEmpty {
+            if !taskModel.subtasks.isEmpty {
                 VStack(alignment: .leading, spacing: 10) {
                     List {
-                        ForEach(subTasks, id: \.self) { subTask in
-                            NavigationLink(destination: SubTaskDetails(subTask: subTask)) {
-                                HStack {
-                                    Image(systemName: subTask.status == .completed ? "checkmark.square.fill" : "square")
-                                        .foregroundColor(.gray)
-                                        .padding(.trailing, 10)
-                                        .onTapGesture {
-                                            if let taskIndex = task.subTasks?.firstIndex(where: { $0.id == subTask.id }) {
-                                                self.task.subTasks?[taskIndex].status.toggle()
-                                            }
-                                        }
-
-                                    Text(subTask.title)
-                                        .font(.body)
-                                        .strikethrough(subTask.status == .completed, color: .gray)
-                                }
-                                .padding(.vertical, 5)
-                            }
-                            .listRowBackground(Color.clear)
+                        ForEach(taskModel.subtasks, id: \.self) { subtaskModel in
+                            getSubtaskView(subtaskModel: subtaskModel)
                         }
                         .onDelete { indexSet in
-                            // TODO: Remove SubTask here
+                            guard let firstIndex = indexSet.first else { return }
+                            let subtask = taskModel.subtasks[firstIndex]
+                            guard let task = realm?.objects(Task.self).filter({
+                                $0.id == taskModel.id
+                            }).first else {
+                                return
+                            }
+                            let subtasksToDelete = Array(task.subtasks).filter({
+                                $0.id == subtask.id
+                            })
+                            do {
+                                try realm?.write {
+                                    realm?.delete(subtasksToDelete)
+                                }
+                            } catch {
+                                // Handle the error here
+                            }
                         }
                     }
                     .listStyle(.plain)
@@ -114,7 +121,7 @@ struct TaskDetails: View {
                         .scaledToFit()
                         .frame(width: 50, height: 50)
                         .foregroundColor(.gray)
-
+                    
                     Text("No subtasks")
                         .font(.headline)
                         .foregroundColor(.gray)
@@ -124,8 +131,30 @@ struct TaskDetails: View {
             }
         }
     }
+
+    private func getSubtaskView(subtaskModel: SubtaskModel) -> some View {
+        NavigationLink(destination: SubtaskDetails(parentTaskModel: taskModel,
+                                                   subtaskModel: subtaskModel)
+        ) {
+            HStack {
+                Image(systemName: subtaskModel.status == TaskStatus.completed.rawValue ? "checkmark.square.fill" : "square")
+                    .foregroundColor(.gray)
+                    .padding(.trailing, 10)
+                    .onTapGesture {
+                        if let taskIndex = taskModel.subtasks.firstIndex(where: { $0.id == subtaskModel.id }) {
+                            self.taskModel.subtasks[taskIndex].status.toggleStatus()
+                        }
+                    }
+
+                Text(subtaskModel.title)
+                    .font(.body)
+                    .strikethrough(subtaskModel.status == TaskStatus.completed.rawValue, color: .gray)
+            }
+            .padding(.vertical, 5)
+        }
+    }
 }
 
 #Preview {
-    TaskDetails(task: Task.mockTasks.first!)
+    TaskDetails(taskModel: TaskModel.generatedTaskModels.first!)
 }

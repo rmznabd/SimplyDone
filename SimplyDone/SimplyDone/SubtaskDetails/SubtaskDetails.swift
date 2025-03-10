@@ -1,5 +1,5 @@
 //
-//  SubTaskDetails.swift
+//  SubtaskDetails.swift
 //  SimplyDone
 //
 //  Created by Ramazan Abdullayev on 02/03/2025.
@@ -7,26 +7,27 @@
 
 import SwiftUI
 
-struct SubTaskDetails: View {
-    let subTask: SubTask
+struct SubtaskDetails: View {
+    let parentTaskModel: TaskModel
+    let subtaskModel: SubtaskModel
 
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
 
             HStack(alignment: .center) {
-                Image(systemName: subTask.status == .completed ? "checkmark.square.fill": "square")
+                Image(systemName: subtaskModel.status == TaskStatus.completed.rawValue ? "checkmark.square.fill": "square")
                     .imageScale(.large)
                     .frame(width: 30, height: 30)
                     .foregroundColor(Color(UIColor.darkGray))
-
-                Text(subTask.title)
+                
+                Text(subtaskModel.title)
                     .font(.title)
                     .fontWeight(.bold)
                     .padding(.horizontal, 5)
             }
             .padding(.top, 20)
 
-            Text(subTask.description)
+            Text(subtaskModel.taskDescription)
                 .font(.body)
                 .foregroundColor(.secondary)
                 .padding()
@@ -35,10 +36,12 @@ struct SubTaskDetails: View {
         }
         .padding()
         .frame(maxWidth: .infinity, alignment: .leading)
-        .navigationTitle("SubTask Details")
+        .navigationTitle("Subtask Details")
         .toolbar {
             ToolbarItem(placement: .navigationBarTrailing) {
-                NavigationLink(destination: AddSubTask(viewMode: .edit, subTask: subTask)) {
+                NavigationLink(destination: AddSubtask(viewMode: .edit,
+                                                       parentTaskModel: parentTaskModel,
+                                                       subtaskModel: subtaskModel)) {
                     Image(systemName: "square.and.pencil")
                         .imageScale(.large)
                         .foregroundColor(.black)
@@ -49,6 +52,6 @@ struct SubTaskDetails: View {
 }
 
 #Preview {
-    let task = Task.mockTasks.first
-    SubTaskDetails(subTask: task!.subTasks!.first!)
+    let taskModel = TaskModel.generatedTaskModels.first
+    SubtaskDetails(parentTaskModel: taskModel!, subtaskModel: taskModel!.subtasks.first!)
 }
