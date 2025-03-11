@@ -131,7 +131,7 @@ struct AddSubtask: View {
                             .stroke(Color.gray.opacity(0.5), lineWidth: 0.5)
                     )
 
-                if subtaskModel.taskDescription.isEmpty {
+                if subtaskModelDescription.isEmpty {
                     Text("Enter task description")
                         .foregroundColor(.gray.opacity(0.5))
                         .padding(.horizontal, 10)
