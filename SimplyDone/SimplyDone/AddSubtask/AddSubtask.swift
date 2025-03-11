@@ -32,14 +32,15 @@ enum AddSubtaskViewMode {
 }
 
 struct AddSubtask: View {
+    @Environment(\.dismiss) private var dismiss
+
     private var parentTaskModel: TaskModel
     private var subtaskModel: SubtaskModel
-
-    @Environment(\.dismiss) private var dismiss
 
     @State private var viewMode: AddSubtaskViewMode
     @State private var subtaskModelTitle: String
     @State private var subtaskModelDescription: String
+    @State private var showAlert = false
 
     let realm = try? Realm()
 
@@ -63,13 +64,19 @@ struct AddSubtask: View {
             Spacer()
 
             Button {
+                guard !subtaskModelTitle.isEmpty, !subtaskModelDescription.isEmpty else {
+                    showAlert = true
+                    return
+                }
+
                 subtaskModel.title = subtaskModelTitle
                 subtaskModel.taskDescription = subtaskModelDescription
+
                 guard let task = realm?.objects(Task.self).filter({
                     $0.id == parentTaskModel.id
                 }).first else { return }
+
                 try? realm?.write {
-                    // TODO: question to Ramazan: should we add or edit the subtask when title or description is empty?
                     if let subtask = Array(task.subtasks).filter({
                         $0.id == subtaskModel.id
                     }).first {
@@ -85,6 +92,13 @@ struct AddSubtask: View {
                 Text(viewMode.bottomButtonTitle)
                     .modifier(PrimaryButtonModifier())
             }
+            .alert(isPresented: $showAlert) {
+                Alert(
+                    title: Text("Missing Information"),
+                    message: Text("Please fill in both the title and description."),
+                    dismissButton: .default(Text("OK"))
+                )
+            }
         }
         .padding()
         .navigationTitle(viewMode.navigationTitle)
@@ -98,7 +112,7 @@ struct AddSubtask: View {
                 "Enter task title",
                 text: $subtaskModelTitle
             )
-                .textFieldStyle(.roundedBorder)
+            .textFieldStyle(.roundedBorder)
         }
     }
 
@@ -108,9 +122,7 @@ struct AddSubtask: View {
                 .font(.headline)
 
             ZStack(alignment: .topLeading) {
-                TextEditor(
-                    text: $subtaskModelDescription
-                )
+                TextEditor(text: $subtaskModelDescription)
                     .frame(minHeight: 100, maxHeight: 200)
                     .multilineTextAlignment(.leading)
                     .padding(6)

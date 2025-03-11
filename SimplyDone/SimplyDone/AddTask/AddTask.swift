@@ -32,14 +32,15 @@ enum AddTaskViewMode {
 }
 
 struct AddTask: View {
-    private var taskModel: TaskModel
-
     @Environment(\.dismiss) private var dismiss
+
+    private var taskModel: TaskModel
 
     @State private var viewMode: AddTaskViewMode
     @State private var taskModelTitle: String
     @State private var taskModelDescription: String
     @State private var taskModelDueDate: Date?
+    @State private var showAlert = false
 
     let realm = try? Realm()
 
@@ -60,10 +61,15 @@ struct AddTask: View {
             Spacer()
 
             Button {
-                // TODO: question to Ramazan: should we add or edit the task when title or description is empty?
+                guard !taskModelTitle.isEmpty, !taskModelDescription.isEmpty else {
+                    showAlert = true
+                    return
+                }
+
                 taskModel.title = taskModelTitle
                 taskModel.taskDescription = taskModelDescription
                 taskModel.dueDate = taskModelDueDate
+
                 try? realm?.write {
                     if viewMode == .create {
                         realm?.add(taskModel.toPersistObject())
@@ -81,10 +87,16 @@ struct AddTask: View {
                 Text(viewMode.bottomButtonTitle)
                     .modifier(PrimaryButtonModifier())
             }
+            .alert(isPresented: $showAlert) {
+                Alert(
+                    title: Text("Missing Information"),
+                    message: Text("Please fill in both the title and description."),
+                    dismissButton: .default(Text("OK"))
+                )
+            }
         }
         .padding()
         .navigationTitle(viewMode.navigationTitle)
-        
     }
 
     private var titleInput: some View {
@@ -102,9 +114,7 @@ struct AddTask: View {
                 .font(.headline)
 
             ZStack(alignment: .topLeading) {
-                TextEditor(
-                    text: $taskModelDescription
-                )
+                TextEditor(text: $taskModelDescription)
                     .frame(minHeight: 100, maxHeight: 200)
                     .multilineTextAlignment(.leading)
                     .padding(6)
@@ -140,5 +150,13 @@ struct AddTask: View {
 }
 
 #Preview {
-    AddTask(viewMode: .edit, taskModel: TaskModel(id: UUID(), title: "Test", taskDescription: "Test description", subtasks: [SubtaskModel]()))
+    AddTask(
+        viewMode: .edit,
+        taskModel: TaskModel(
+            id: UUID(),
+            title: "Test",
+            taskDescription: "Test description",
+            subtasks: [SubtaskModel]()
+        )
+    )
 }
