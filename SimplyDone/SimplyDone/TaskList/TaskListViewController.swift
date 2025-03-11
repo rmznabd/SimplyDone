@@ -11,9 +11,7 @@ import UIKit
 
 class TaskListViewController: UIViewController {
 
-    private var taskModels = [TaskModel]()
-
-    let realm = try? Realm()
+    private var viewModel = TaskListViewModel()
 
     private lazy var tableView: UITableView = {
         let tableView = UITableView()
@@ -35,7 +33,9 @@ class TaskListViewController: UIViewController {
 
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        generateTasks()
+
+        viewModel.generateRealmTasks()
+        tableView.reloadData()
     }
 
     private func setupUI() {
@@ -55,39 +55,29 @@ class TaskListViewController: UIViewController {
         addTaskScreen.navigationItem.largeTitleDisplayMode = .never
         navigationController?.pushViewController(addTaskScreen, animated: true)
     }
-
-    private func generateTasks() {
-        if let result = realm?.objects(Task.self), !result.isEmpty {
-            taskModels = Array(result).compactMap { TaskModel(realmObject: $0) }
-        } else {
-            taskModels = TaskModel.generatedTaskModels
-            taskModels.forEach({ taskModel in
-                try? realm?.write {
-                    realm?.add(taskModel.toPersistObject())
-                }
-            })
-        }
-        tableView.reloadData()
-    }
 }
 
 extension TaskListViewController: UITableViewDataSource, UITableViewDelegate {
     func numberOfSections(in tableView: UITableView) -> Int {
-        return taskModels.count
+        viewModel.numberOfSections
     }
  
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        let taskModel = taskModels[section]
-        return taskModel.subtasks.count + 1
+        viewModel.getNumberOfRows(in: section)
     }
 
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let taskModel = taskModels[indexPath.section]
+        let taskModel = viewModel.getTaskModel(in: indexPath.section)
 
         if indexPath.row == 0 {
             // Main Task Cell
             let cell = tableView.dequeueReusableCell(withIdentifier: TaskCell.reuseIdentifier, for: indexPath) as! TaskCell
             cell.configure(with: taskModel)
+            cell.onRadioButtonTappedCallback = { [weak self] in
+                taskModel.status.toggleStatus()
+                cell.configure(with: taskModel)
+                self?.viewModel.updateRealmTaskStatus(for: taskModel)
+            }
             cell.selectionStyle = .none
             return cell
         } else {
@@ -95,60 +85,41 @@ extension TaskListViewController: UITableViewDataSource, UITableViewDelegate {
             let subtaskModel = taskModel.subtasks[indexPath.row - 1]
             let cell = tableView.dequeueReusableCell(withIdentifier: SubtaskCell.reuseIdentifier, for: indexPath) as! SubtaskCell
             cell.configure(with: subtaskModel)
+            cell.onRadioButtonTappedCallback = { [weak self] in
+                subtaskModel.status.toggleStatus()
+                cell.configure(with: subtaskModel)
+                self?.viewModel.updateRealmSubtaskStatus(for: subtaskModel, parentTaskModel: taskModel)
+            }
             cell.selectionStyle = .none
             return cell
         }
     }
 
     func tableView(_ tableView: UITableView, canEditRowAt indexPath: IndexPath) -> Bool {
-        return true
+        true
     }
 
     func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
         if editingStyle == .delete {
+            let taskModel = viewModel.getTaskModel(in: indexPath.section)
             if indexPath.row == 0 {
-                let taskModel = taskModels[indexPath.section]
-                guard let tasksToDelete = realm?.objects(Task.self).filter({
-                    $0.id == taskModel.id
-                }) else {
-                    return
-                }
-                do {
-                    try realm?.write {
-                        realm?.delete(tasksToDelete)
-                    }
-                } catch {
-                    // Handle the error here
-                }
+                viewModel.deleteRealmTask(for: taskModel)
             } else {
-                let taskModel = taskModels[indexPath.section]
                 let subtaskModel = taskModel.subtasks[indexPath.row - 1]
-                guard let task = realm?.objects(Task.self).filter({
-                    $0.id == taskModel.id
-                }).first else {
-                    return
-                }
-                let subtasksToDelete = Array(task.subtasks).filter({
-                    $0.id == subtaskModel.id
-                })
-                do {
-                    try realm?.write {
-                        realm?.delete(subtasksToDelete)
-                    }
-                } catch {
-                    // Handle the error here
-                }
+                viewModel.deleteRealmSubtask(for: subtaskModel,
+                              parentTaskModel: taskModel)
             }
-            generateTasks()
+            viewModel.generateRealmTasks()
+            tableView.reloadData()
         }
     }
 
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        let taskModel = taskModels[indexPath.section]
+        let taskModel = viewModel.getTaskModel(in: indexPath.section)
 
         if indexPath.row == 0 {
             // Show Task Details
-            let taskDetailsScreen = UIHostingController(rootView: TaskDetails(taskModel: taskModel))
+            let taskDetailsScreen = UIHostingController(rootView: TaskDetails(viewModel: TaskDetailsViewModel(taskModel: taskModel)))
 
             taskDetailsScreen.navigationItem.largeTitleDisplayMode = .never
             self.navigationController?.pushViewController(taskDetailsScreen, animated: true)
@@ -156,7 +127,7 @@ extension TaskListViewController: UITableViewDataSource, UITableViewDelegate {
             // Show Subtask Details
             let subtaskModel = taskModel.subtasks[indexPath.row - 1]
             let subtaskDetailsScreen = UIHostingController(
-                rootView: SubtaskDetails(parentTaskModel: taskModel, subtaskModel: subtaskModel)
+                rootView: SubtaskDetails(viewModel: SubtaskDetailsViewModel(parentTaskModel: taskModel, subtaskModel: subtaskModel))
             )
 
             subtaskDetailsScreen.navigationItem.largeTitleDisplayMode = .never
@@ -165,6 +136,6 @@ extension TaskListViewController: UITableViewDataSource, UITableViewDelegate {
     }
 
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
-        return indexPath.row == 0 ? 70 : 50
+        indexPath.row == 0 ? 70 : 50
     }
 }

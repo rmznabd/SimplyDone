@@ -10,6 +10,8 @@ import UIKit
 class TaskCell: UITableViewCell {
     static let reuseIdentifier = "TaskCell"
 
+    var onRadioButtonTappedCallback: (() -> Void)?
+
     private lazy var titleLabel: UILabel = {
         let label = UILabel()
         label.numberOfLines = 0
@@ -84,7 +86,6 @@ class TaskCell: UITableViewCell {
     }
 
     func configure(with taskModel: TaskModel) {
-        titleLabel.text = taskModel.title
 
         if let dueDate = taskModel.dueDate {
             dueDateLabel.text = formattedDate(dueDate)
@@ -103,6 +104,8 @@ class TaskCell: UITableViewCell {
             radioButton.tintColor = .darkGray
         } else {
             titleLabel.textColor = .black
+            titleLabel.attributedText = NSMutableAttributedString(string: taskModel.title, attributes: [:])
+            titleLabel.text = taskModel.title
             radioButton.setImage(UIImage(systemName: "square"), for: .normal)
             radioButton.tintColor = .gray
         }
@@ -116,7 +119,6 @@ class TaskCell: UITableViewCell {
 
     @objc
     private func didTapRadioButton() {
-        print("Task radio button tapped")
-        // TODO: Handle radio button action here
+        onRadioButtonTappedCallback?()
     }
 }

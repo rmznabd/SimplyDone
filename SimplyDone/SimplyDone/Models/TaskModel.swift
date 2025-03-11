@@ -68,21 +68,18 @@ extension TaskModel {
                 id: UUID(),
                 title: "Schedule Meeting",
                 taskDescription: "Discuss project initials",
-                dueDate: Date(),
                 status: TaskStatus.completed.rawValue
             ),
             SubtaskModel(
                 id: UUID(),
                 title: "Project overview",
                 taskDescription: "Write down all steps needs to be done",
-                dueDate: Date(),
                 status: TaskStatus.completed.rawValue
             ),
             SubtaskModel(
                 id: UUID(),
                 title: "Project design",
                 taskDescription: "How app will look like?",
-                dueDate: Date(),
                 status: TaskStatus.pending.rawValue
             )
         ]
@@ -116,7 +113,6 @@ extension TaskModel {
                 id: UUID(),
                 title: "Schedule a meeting",
                 taskDescription: "Discuss all topics",
-                dueDate: Date(),
                 status: TaskStatus.completed.rawValue
             )
         ]

@@ -9,35 +9,36 @@ import RealmSwift
 import SwiftUI
 
 struct TaskDetails: View {
-    let taskModel: TaskModel
-    let realm = try? Realm()
+
+    private(set) var viewModel: TaskDetailsViewModel
 
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
 
             HStack(alignment: .center) {
-                Image(systemName: taskModel.status == TaskStatus.completed.rawValue ? "checkmark.square.fill": "square")
+                Image(systemName: viewModel.taskModel.status == TaskStatus.completed.rawValue ? "checkmark.square.fill": "square")
                     .imageScale(.large)
                     .frame(width: 30, height: 30)
                     .foregroundColor(Color(UIColor.darkGray))
                     .onTapGesture {
-                        taskModel.status.toggleStatus()
+                        viewModel.taskModel.status.toggleStatus()
+                        viewModel.updateRealmTaskStatus()
                     }
                 
-                Text(taskModel.title)
+                Text(viewModel.taskModel.title)
                     .font(.title)
                     .fontWeight(.bold)
             }
             .padding(.top, 20)
 
-            Text(taskModel.taskDescription)
+            Text(viewModel.taskModel.taskDescription)
                 .font(.body)
                 .foregroundColor(.secondary)
                 .padding()
 
             HStack {
-                Image(systemName: taskModel.dueDate == nil ? "calendar.badge.exclamationmark" : "calendar")
-                Text("\(taskModel.dueDate?.formatted(date: .abbreviated, time: .omitted) ?? "No Due Date")")
+                Image(systemName: viewModel.taskModel.dueDate == nil ? "calendar.badge.exclamationmark" : "calendar")
+                Text("\(viewModel.taskModel.dueDate?.formatted(date: .abbreviated, time: .omitted) ?? "No Due Date")")
                     .font(.subheadline)
                     .foregroundColor(.secondary)
             }
@@ -53,7 +54,7 @@ struct TaskDetails: View {
         .navigationTitle("Task Details")
         .toolbar {
             ToolbarItem(placement: .navigationBarTrailing) {
-                NavigationLink(destination: AddTask(viewMode: .edit, taskModel: taskModel)) {
+                NavigationLink(destination: AddTask(viewMode: .edit, taskModel: viewModel.taskModel)) {
                     Image(systemName: "square.and.pencil")
                         .imageScale(.large)
                         .foregroundColor(.black)
@@ -74,7 +75,7 @@ struct TaskDetails: View {
                 NavigationLink(
                     destination: AddSubtask(
                     viewMode: .create,
-                    parentTaskModel: taskModel,
+                    parentTaskModel: viewModel.taskModel,
                     subtaskModel: SubtaskModel(id: UUID())
                     )
                 ) {
@@ -86,30 +87,15 @@ struct TaskDetails: View {
             }
             .padding(.horizontal, 10)
 
-            if !taskModel.subtasks.isEmpty {
+            if !viewModel.taskModel.subtasks.isEmpty {
                 VStack(alignment: .leading, spacing: 10) {
                     List {
-                        ForEach(taskModel.subtasks, id: \.self) { subtaskModel in
+                        ForEach(viewModel.taskModel.subtasks, id: \.self) { subtaskModel in
                             getSubtaskView(subtaskModel: subtaskModel)
                         }
                         .onDelete { indexSet in
                             guard let firstIndex = indexSet.first else { return }
-                            let subtask = taskModel.subtasks[firstIndex]
-                            guard let task = realm?.objects(Task.self).filter({
-                                $0.id == taskModel.id
-                            }).first else {
-                                return
-                            }
-                            let subtasksToDelete = Array(task.subtasks).filter({
-                                $0.id == subtask.id
-                            })
-                            do {
-                                try realm?.write {
-                                    realm?.delete(subtasksToDelete)
-                                }
-                            } catch {
-                                // Handle the error here
-                            }
+                            viewModel.deleteRealmSubtask(for: firstIndex)
                         }
                     }
                     .listStyle(.plain)
@@ -133,16 +119,20 @@ struct TaskDetails: View {
     }
 
     private func getSubtaskView(subtaskModel: SubtaskModel) -> some View {
-        NavigationLink(destination: SubtaskDetails(parentTaskModel: taskModel,
-                                                   subtaskModel: subtaskModel)
-        ) {
+        NavigationLink(destination: SubtaskDetails(
+            viewModel: SubtaskDetailsViewModel(
+                parentTaskModel: viewModel.taskModel,
+                subtaskModel: subtaskModel
+            )
+        )) {
             HStack {
                 Image(systemName: subtaskModel.status == TaskStatus.completed.rawValue ? "checkmark.square.fill" : "square")
                     .foregroundColor(.gray)
                     .padding(.trailing, 10)
                     .onTapGesture {
-                        if let taskIndex = taskModel.subtasks.firstIndex(where: { $0.id == subtaskModel.id }) {
-                            self.taskModel.subtasks[taskIndex].status.toggleStatus()
+                        if let subtaskIndex = viewModel.taskModel.subtasks.firstIndex(where: { $0.id == subtaskModel.id }) {
+                            self.viewModel.taskModel.subtasks[subtaskIndex].status.toggleStatus()
+                            self.viewModel.updateRealmSubtaskStatus(for: subtaskIndex)
                         }
                     }
 
@@ -156,5 +146,65 @@ struct TaskDetails: View {
 }
 
 #Preview {
-    TaskDetails(taskModel: TaskModel.generatedTaskModels.first!)
+    TaskDetails(viewModel: TaskDetailsViewModel(taskModel: TaskModel.generatedTaskModels.first!))
+}
+
+@Observable
+class TaskDetailsViewModel {
+
+    let taskModel: TaskModel
+    let realm = try? Realm()
+
+    init(taskModel: TaskModel) {
+        self.taskModel = taskModel
+    }
+
+    func deleteRealmSubtask(for index: Int) {
+        guard let task = realm?.objects(Task.self).filter({ [weak self] in
+            $0.id == self?.taskModel.id
+        }).first else { return }
+
+        let subtaskModel = taskModel.subtasks[index]
+        let subtasksToDelete = Array(task.subtasks).filter({ $0.id == subtaskModel.id })
+        do {
+            try realm?.write {
+                realm?.delete(subtasksToDelete)
+            }
+        } catch {
+            // Handle the error here
+        }
+    }
+
+    func updateRealmTaskStatus() {
+        guard let task = realm?.objects(Task.self).filter({ [weak self] in
+            $0.id == self?.taskModel.id
+        }).first else { return }
+
+        do {
+            try realm?.write {
+                task.status = taskModel.status
+            }
+        } catch {
+            // Handle the error here
+        }
+    }
+
+    func updateRealmSubtaskStatus(for index: Int) {
+        guard let task = realm?.objects(Task.self).filter({ [weak self] in
+            $0.id == self?.taskModel.id
+        }).first else { return }
+
+        let subtaskModel = taskModel.subtasks[index]
+        guard let subtask = Array(task.subtasks).filter({
+            $0.id == subtaskModel.id
+        }).first else { return }
+
+        do {
+            try realm?.write {
+                subtask.status = subtaskModel.status
+            }
+        } catch {
+            // Handle the error here
+        }
+    }
 }

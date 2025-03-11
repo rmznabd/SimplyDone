@@ -13,7 +13,6 @@ class SubtaskModel: Hashable {
         lhs.id == rhs.id &&
         lhs.title == rhs.title &&
         lhs.taskDescription == rhs.taskDescription &&
-        lhs.dueDate == rhs.dueDate &&
         lhs.status == rhs.status
     }
 
@@ -24,18 +23,15 @@ class SubtaskModel: Hashable {
     let id: UUID
     var title: String
     var taskDescription: String
-    var dueDate: Date?
     var status: String
 
     init(id: UUID,
          title: String = "",
          taskDescription: String = "",
-         dueDate: Date? = nil,
          status: String = TaskStatus.pending.rawValue) {
         self.id = id
         self.title = title
         self.taskDescription = taskDescription
-        self.dueDate = dueDate
         self.status = status
     }
 
@@ -43,7 +39,6 @@ class SubtaskModel: Hashable {
         self.init(id: realmObject.id,
                   title: realmObject.title,
                   taskDescription: realmObject.taskDescription,
-                  dueDate: realmObject.dueDate,
                   status: realmObject.status)
     }
 
