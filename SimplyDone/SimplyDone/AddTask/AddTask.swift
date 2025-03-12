@@ -49,7 +49,13 @@ struct AddTask: View {
         self.taskModel = taskModel
         self.taskModelTitle = taskModel.title
         self.taskModelDescription = taskModel.taskDescription
-        self.taskModelDueDate = taskModel.dueDate
+
+        // Ensure taskModelDueDate is initialized properly
+        if viewMode == .edit {
+            _taskModelDueDate = State(initialValue: taskModel.dueDate)
+        } else {
+            _taskModelDueDate = State(initialValue: nil)
+        }
     }
 
     var body: some View {
@@ -134,18 +140,16 @@ struct AddTask: View {
     }
 
     private var dueDateInput: some View {
-        HStack {
-            Text("Due Date:")
-                .bold()
-            Spacer()
-            DatePicker("", selection: Binding(
-                get: { taskModelDueDate ?? .now },
+        DatePicker(
+            "Due Date:",
+            selection: Binding(
+                get: { taskModelDueDate ?? Date() },
                 set: { taskModelDueDate = $0 }
-            ), displayedComponents: .date)
-                .labelsHidden()
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(.leading, 16)
-        }
+            ),
+            displayedComponents: .date
+        )
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.horizontal, 16)
     }
 }
 
