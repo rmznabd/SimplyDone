@@ -44,13 +44,12 @@ struct SubtaskDetails: View {
         .navigationTitle("Subtask Details")
         .toolbar {
             ToolbarItem(placement: .navigationBarTrailing) {
-                NavigationLink(destination: AddSubtask(viewMode: .edit,
-                                                       parentTaskModel: viewModel.parentTaskModel,
-                                                       subtaskModel: viewModel.subtaskModel)) {
-                    Image(systemName: "square.and.pencil")
-                        .imageScale(.large)
-                        .foregroundColor(.black)
-                }
+                Image(systemName: "square.and.pencil")
+                    .imageScale(.large)
+                    .foregroundColor(.black)
+                    .onTapGesture {
+                        viewModel.navigateToEditSubtask()
+                    }
             }
         }
     }
@@ -60,33 +59,7 @@ struct SubtaskDetails: View {
     let taskModel = TaskModel.generatedTaskModels.first
     SubtaskDetails(viewModel: SubtaskDetailsViewModel(
         parentTaskModel: taskModel!,
-        subtaskModel: taskModel!.subtasks.first!
+        subtaskModel: taskModel!.subtasks.first!,
+        router: .init()
     ))
-}
-
-@Observable
-class SubtaskDetailsViewModel {
-    
-    let parentTaskModel: TaskModel
-    let subtaskModel: SubtaskModel
-    let realm = try? Realm()
-
-    init(parentTaskModel: TaskModel, subtaskModel: SubtaskModel) {
-        self.parentTaskModel = parentTaskModel
-        self.subtaskModel = subtaskModel
-    }
-
-    func updateRealmSubtaskStatus() {
-        guard let subtask = realm?.objects(Subtask.self).filter({ [weak self] in
-            $0.id == self?.subtaskModel.id
-        }).first else { return }
-
-        do {
-            try realm?.write {
-                subtask.status = subtaskModel.status
-            }
-        } catch {
-            // Handle the error here
-        }
-    }
 }

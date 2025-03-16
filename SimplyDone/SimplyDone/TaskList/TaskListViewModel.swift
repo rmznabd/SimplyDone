@@ -12,8 +12,13 @@ import SwiftUI
 final class TaskListViewModel {
 
     private var taskModels = [TaskModel]()
+    private let router: TaskListRouter
 
     let realm = try? Realm()
+
+    init(router: TaskListRouter) {
+        self.router = router
+    }
 
     func generateRealmTasks() {
         if let result = realm?.objects(Task.self), !result.isEmpty {
@@ -92,6 +97,20 @@ final class TaskListViewModel {
         } catch {
             // Handle the error here
         }
+    }
+
+    // MARK: - Navigation
+
+    public func navigateToAddNewTask() {
+        router.navigateToAddTask()
+    }
+
+    public func navigateToTaskDetail(for taskModel: TaskModel) {
+        router.navigateToTaskDetails(for: taskModel)
+    }
+
+    public func navigateToSubtaskDetail(for subtaskModel: SubtaskModel, parentTaskModel: TaskModel) {
+        router.navigateToSubtaskDetail(for: subtaskModel, parentTaskModel: parentTaskModel)
     }
 }
 
