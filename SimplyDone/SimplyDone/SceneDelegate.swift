@@ -16,7 +16,14 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 
         window = UIWindow(frame: windowScene.coordinateSpace.bounds)
         window?.windowScene = windowScene
-        let navigationController = UINavigationController(rootViewController: TaskListViewController())
+
+        let router = TaskListRouter()  // Coordinator
+        let viewModel = TaskListViewModel(router: router)
+        let taskListViewController = TaskListViewController(viewModel: viewModel)
+
+        router.hostingViewController = taskListViewController
+
+        let navigationController = UINavigationController(rootViewController: taskListViewController)
         window?.rootViewController = navigationController
         window?.makeKeyAndVisible()
     }

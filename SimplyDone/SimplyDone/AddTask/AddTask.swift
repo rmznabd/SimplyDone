@@ -8,54 +8,11 @@
 import RealmSwift
 import SwiftUI
 
-enum AddTaskViewMode {
-    case create
-    case edit
-
-    var bottomButtonTitle: String {
-        switch self {
-        case .create:
-            return "Add"
-        case .edit:
-            return "Save"
-        }
-    }
-
-    var navigationTitle: String {
-        switch self {
-        case .create:
-            return "Add new task"
-        case .edit:
-            return "Edit task"
-        }
-    }
-}
-
 struct AddTask: View {
-    @Environment(\.dismiss) private var dismiss
+    @Bindable private var viewModel: AddTaskViewModel
 
-    private var taskModel: TaskModel
-
-    @State private var viewMode: AddTaskViewMode
-    @State private var taskModelTitle: String
-    @State private var taskModelDescription: String
-    @State private var taskModelDueDate: Date?
-    @State private var showAlert = false
-
-    let realm = try? Realm()
-
-    init(viewMode: AddTaskViewMode, taskModel: TaskModel) {
-        self.viewMode = viewMode
-        self.taskModel = taskModel
-        self.taskModelTitle = taskModel.title
-        self.taskModelDescription = taskModel.taskDescription
-
-        // Ensure taskModelDueDate is initialized properly
-        if viewMode == .edit {
-            _taskModelDueDate = State(initialValue: taskModel.dueDate)
-        } else {
-            _taskModelDueDate = State(initialValue: nil)
-        }
+    init(viewModel: AddTaskViewModel) {
+        self.viewModel = viewModel
     }
 
     var body: some View {
@@ -63,53 +20,18 @@ struct AddTask: View {
             titleInput
             descriptionInput
             dueDateInput
-
             Spacer()
-
-            Button {
-                guard !taskModelTitle.isEmpty, !taskModelDescription.isEmpty else {
-                    showAlert = true
-                    return
-                }
-
-                taskModel.title = taskModelTitle
-                taskModel.taskDescription = taskModelDescription
-                taskModel.dueDate = taskModelDueDate
-
-                try? realm?.write {
-                    if viewMode == .create {
-                        realm?.add(taskModel.toPersistObject())
-                    } else {
-                        guard let task = realm?.objects(Task.self).filter({
-                            $0.id == taskModel.id
-                        }).first else { return }
-                        task.title = taskModelTitle
-                        task.taskDescription = taskModelDescription
-                        task.dueDate = taskModelDueDate
-                    }
-                }
-                dismiss()
-            } label: {
-                Text(viewMode.bottomButtonTitle)
-                    .modifier(PrimaryButtonModifier())
-            }
-            .alert(isPresented: $showAlert) {
-                Alert(
-                    title: Text("Missing Information"),
-                    message: Text("Please fill in both the title and description."),
-                    dismissButton: .default(Text("OK"))
-                )
-            }
+            button
         }
         .padding()
-        .navigationTitle(viewMode.navigationTitle)
+        .navigationTitle(viewModel.viewMode.navigationTitle)
     }
 
     private var titleInput: some View {
         VStack(alignment: .leading, spacing: 10) {
             Text("Title")
                 .font(.headline)
-            TextField("Enter task title", text: $taskModelTitle)
+            TextField("Enter task title", text: $viewModel.taskModelTitle)
                 .textFieldStyle(.roundedBorder)
         }
     }
@@ -120,7 +42,7 @@ struct AddTask: View {
                 .font(.headline)
 
             ZStack(alignment: .topLeading) {
-                TextEditor(text: $taskModelDescription)
+                TextEditor(text: $viewModel.taskModelDescription)
                     .frame(minHeight: 100, maxHeight: 200)
                     .multilineTextAlignment(.leading)
                     .padding(6)
@@ -129,7 +51,7 @@ struct AddTask: View {
                             .stroke(Color.gray.opacity(0.5), lineWidth: 0.5)
                     )
 
-                if taskModelDescription.isEmpty {
+                if viewModel.taskModelDescription.isEmpty {
                     Text("Enter task description")
                         .foregroundColor(.gray.opacity(0.5))
                         .padding(.horizontal, 10)
@@ -143,24 +65,41 @@ struct AddTask: View {
         DatePicker(
             "Due Date:",
             selection: Binding(
-                get: { taskModelDueDate ?? Date() },
-                set: { taskModelDueDate = $0 }
+                get: { viewModel.taskModelDueDate ?? Date() },
+                set: { viewModel.taskModelDueDate = $0 }
             ),
             displayedComponents: .date
         )
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(.horizontal, 16)
     }
+
+    private var button: some View {
+        Button {
+            viewModel.saveTask()
+        } label: {
+            Text(viewModel.viewMode.bottomButtonTitle)
+                .modifier(PrimaryButtonModifier())
+        }
+        .alert(isPresented: $viewModel.showAlert) {
+            Alert(
+                title: Text("Missing Information"),
+                message: Text("Please fill in both the title and description."),
+                dismissButton: .default(Text("OK"))
+            )
+        }
+    }
 }
 
 #Preview {
-    AddTask(
+    AddTask(viewModel: .init(
         viewMode: .edit,
         taskModel: TaskModel(
             id: UUID(),
             title: "Test",
             taskDescription: "Test description",
             subtasks: [SubtaskModel]()
-        )
+        ),
+        router: .init())
     )
 }

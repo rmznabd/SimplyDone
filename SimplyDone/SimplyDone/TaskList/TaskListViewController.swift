@@ -11,7 +11,7 @@ import UIKit
 
 class TaskListViewController: UIViewController {
 
-    private var viewModel = TaskListViewModel()
+    private var viewModel: TaskListViewModel
 
     private lazy var tableView: UITableView = {
         let tableView = UITableView()
@@ -24,6 +24,15 @@ class TaskListViewController: UIViewController {
 
         return tableView
     }()
+
+    init(viewModel: TaskListViewModel) {
+        self.viewModel = viewModel
+        super.init(nibName: nil, bundle: nil)
+    }
+
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -51,9 +60,7 @@ class TaskListViewController: UIViewController {
     }
 
     @objc private func addTask() {
-        let addTaskScreen = UIHostingController(rootView: AddTask(viewMode: .create, taskModel: TaskModel(id: UUID())))
-        addTaskScreen.navigationItem.largeTitleDisplayMode = .never
-        navigationController?.pushViewController(addTaskScreen, animated: true)
+        viewModel.navigateToAddNewTask()
     }
 }
 
@@ -119,19 +126,11 @@ extension TaskListViewController: UITableViewDataSource, UITableViewDelegate {
 
         if indexPath.row == 0 {
             // Show Task Details
-            let taskDetailsScreen = UIHostingController(rootView: TaskDetails(viewModel: TaskDetailsViewModel(taskModel: taskModel)))
-
-            taskDetailsScreen.navigationItem.largeTitleDisplayMode = .never
-            self.navigationController?.pushViewController(taskDetailsScreen, animated: true)
+            viewModel.navigateToTaskDetail(for: taskModel)
         } else {
             // Show Subtask Details
             let subtaskModel = taskModel.subtasks[indexPath.row - 1]
-            let subtaskDetailsScreen = UIHostingController(
-                rootView: SubtaskDetails(viewModel: SubtaskDetailsViewModel(parentTaskModel: taskModel, subtaskModel: subtaskModel))
-            )
-
-            subtaskDetailsScreen.navigationItem.largeTitleDisplayMode = .never
-            self.navigationController?.pushViewController(subtaskDetailsScreen, animated: true)
+            viewModel.navigateToSubtaskDetail(for: subtaskModel, parentTaskModel: taskModel)
         }
     }
 

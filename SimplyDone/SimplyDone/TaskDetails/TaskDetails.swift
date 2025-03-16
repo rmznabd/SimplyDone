@@ -5,7 +5,6 @@
 //  Created by Ramazan Abdullayev on 01/03/2025.
 //
 
-import RealmSwift
 import SwiftUI
 
 struct TaskDetails: View {
@@ -24,7 +23,7 @@ struct TaskDetails: View {
                         viewModel.taskModel.status.toggleStatus()
                         viewModel.updateRealmTaskStatus()
                     }
-                
+
                 Text(viewModel.taskModel.title)
                     .font(.title)
                     .fontWeight(.bold)
@@ -54,11 +53,12 @@ struct TaskDetails: View {
         .navigationTitle("Task Details")
         .toolbar {
             ToolbarItem(placement: .navigationBarTrailing) {
-                NavigationLink(destination: AddTask(viewMode: .edit, taskModel: viewModel.taskModel)) {
-                    Image(systemName: "square.and.pencil")
-                        .imageScale(.large)
-                        .foregroundColor(.black)
-                }
+                Image(systemName: "square.and.pencil")
+                    .imageScale(.large)
+                    .foregroundColor(.black)
+                    .onTapGesture { 
+                        viewModel.navigateToEditTask()
+                    }
             }
         }
     }
@@ -71,19 +71,14 @@ struct TaskDetails: View {
                     .fontWeight(.bold)
                 
                 Spacer()
-                
-                NavigationLink(
-                    destination: AddSubtask(
-                    viewMode: .create,
-                    parentTaskModel: viewModel.taskModel,
-                    subtaskModel: SubtaskModel(id: UUID())
-                    )
-                ) {
-                    Image(systemName: "plus")
-                        .imageScale(.large)
-                        .frame(width: 30, height: 30)
-                        .foregroundColor(.black)
-                }
+
+                Image(systemName: "plus")
+                    .imageScale(.large)
+                    .frame(width: 30, height: 30)
+                    .foregroundColor(.black)
+                    .onTapGesture {
+                        viewModel.navigateToAddNewSubtask()
+                    }
             }
             .padding(.horizontal, 10)
 
@@ -119,92 +114,31 @@ struct TaskDetails: View {
     }
 
     private func getSubtaskView(subtaskModel: SubtaskModel) -> some View {
-        NavigationLink(destination: SubtaskDetails(
-            viewModel: SubtaskDetailsViewModel(
-                parentTaskModel: viewModel.taskModel,
-                subtaskModel: subtaskModel
-            )
-        )) {
-            HStack {
-                Image(systemName: subtaskModel.status == TaskStatus.completed.rawValue ? "checkmark.square.fill" : "square")
-                    .foregroundColor(.gray)
-                    .padding(.trailing, 10)
-                    .onTapGesture {
-                        if let subtaskIndex = viewModel.taskModel.subtasks.firstIndex(where: { $0.id == subtaskModel.id }) {
-                            self.viewModel.taskModel.subtasks[subtaskIndex].status.toggleStatus()
-                            self.viewModel.updateRealmSubtaskStatus(for: subtaskIndex)
-                        }
+        HStack {
+            Image(systemName: subtaskModel.status == TaskStatus.completed.rawValue ? "checkmark.square.fill" : "square")
+                .foregroundColor(.gray)
+                .padding(.trailing, 10)
+                .onTapGesture {
+                    if let subtaskIndex = viewModel.taskModel.subtasks.firstIndex(where: { $0.id == subtaskModel.id }) {
+                        self.viewModel.taskModel.subtasks[subtaskIndex].status.toggleStatus()
+                        self.viewModel.updateRealmSubtaskStatus(for: subtaskIndex)
                     }
+                }
 
-                Text(subtaskModel.title)
-                    .font(.body)
-                    .strikethrough(subtaskModel.status == TaskStatus.completed.rawValue, color: .gray)
-            }
-            .padding(.vertical, 5)
+            Text(subtaskModel.title)
+                .font(.body)
+                .strikethrough(subtaskModel.status == TaskStatus.completed.rawValue, color: .gray)
+        }
+        .padding(.vertical, 5)
+        .onTapGesture {
+            viewModel.navigateToSubtaskDetails(for: subtaskModel)
         }
     }
 }
 
 #Preview {
-    TaskDetails(viewModel: TaskDetailsViewModel(taskModel: TaskModel.generatedTaskModels.first!))
-}
-
-@Observable
-class TaskDetailsViewModel {
-
-    let taskModel: TaskModel
-    let realm = try? Realm()
-
-    init(taskModel: TaskModel) {
-        self.taskModel = taskModel
-    }
-
-    func deleteRealmSubtask(for index: Int) {
-        guard let task = realm?.objects(Task.self).filter({ [weak self] in
-            $0.id == self?.taskModel.id
-        }).first else { return }
-
-        let subtaskModel = taskModel.subtasks[index]
-        let subtasksToDelete = Array(task.subtasks).filter({ $0.id == subtaskModel.id })
-        do {
-            try realm?.write {
-                realm?.delete(subtasksToDelete)
-            }
-        } catch {
-            // Handle the error here
-        }
-    }
-
-    func updateRealmTaskStatus() {
-        guard let task = realm?.objects(Task.self).filter({ [weak self] in
-            $0.id == self?.taskModel.id
-        }).first else { return }
-
-        do {
-            try realm?.write {
-                task.status = taskModel.status
-            }
-        } catch {
-            // Handle the error here
-        }
-    }
-
-    func updateRealmSubtaskStatus(for index: Int) {
-        guard let task = realm?.objects(Task.self).filter({ [weak self] in
-            $0.id == self?.taskModel.id
-        }).first else { return }
-
-        let subtaskModel = taskModel.subtasks[index]
-        guard let subtask = Array(task.subtasks).filter({
-            $0.id == subtaskModel.id
-        }).first else { return }
-
-        do {
-            try realm?.write {
-                subtask.status = subtaskModel.status
-            }
-        } catch {
-            // Handle the error here
-        }
-    }
+    TaskDetails(viewModel: TaskDetailsViewModel(
+        taskModel: TaskModel.generatedTaskModels.first!,
+        router: .init()
+    ))
 }
