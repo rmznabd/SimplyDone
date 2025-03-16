@@ -66,69 +66,79 @@ extension TaskModel {
         var subtaskModels1: [SubtaskModel] = [
             SubtaskModel(
                 id: UUID(),
-                title: "Schedule Meeting",
-                taskDescription: "Discuss project initials",
+                title: "Investigate the Cause",
+                taskDescription: "Is it out of beans, water, or just in protest?",
                 status: TaskStatus.completed.rawValue
             ),
             SubtaskModel(
                 id: UUID(),
-                title: "Project overview",
-                taskDescription: "Write down all steps needs to be done",
-                status: TaskStatus.completed.rawValue
+                title: "Emergency Coffee Run",
+                taskDescription: "Send a brave soul to the nearest café.",
+                status: TaskStatus.pending.rawValue
             ),
             SubtaskModel(
                 id: UUID(),
-                title: "Project design",
-                taskDescription: "How app will look like?",
+                title: "Coffee Machine Training",
+                taskDescription: "Ensure no one causes this disaster again.",
                 status: TaskStatus.pending.rawValue
             )
         ]
+        var subtaskModels2: [SubtaskModel] = [
+            SubtaskModel(
+                id: UUID(),
+                title: "Assemble the Pitch",
+                taskDescription: "Gather SwiftUI's benefits in a convincing deck.",
+                status: TaskStatus.completed.rawValue
+            ),
+            SubtaskModel(
+                id: UUID(),
+                title: "Defend Against Legacy Resistance",
+                taskDescription: "Address concerns about UIKit’s reliability.",
+                status: TaskStatus.completed.rawValue
+            ),
+            SubtaskModel(
+                id: UUID(),
+                title: "SwiftUI Showcase",
+                taskDescription: "Build a small, sleek prototype to prove its power.",
+                status: TaskStatus.pending.rawValue
+            ),
+            SubtaskModel(
+                id: UUID(),
+                title: "Final Decision Meeting",
+                taskDescription: "Present your case and hope for the green light!",
+                status: TaskStatus.pending.rawValue
+            )
+        ]
+
         var taskModel1 = TaskModel(
             id: UUID(),
-            title: "Decide MeetUp topic",
-            taskDescription: "Research to find attractive topic to talk about ak nalsd lskd alsk nalksn dalskn calksnc alksdnc lksnc alksnc alk ncalkn clsknc aslknc alksnc alsknc alkc l l clsckn alsknc lskcn alsckn lscn alc.",
+            title: "Conquer the Coffee Crisis ☕️",
+            taskDescription: "The office coffee machine is broken, and productivity is at risk. Assemble a plan to restore caffeine levels!",
             dueDate: Date(),
             status: TaskStatus.pending.rawValue,
             subtasks: subtaskModels1
         )
         var taskModel2 = TaskModel(
             id: UUID(),
-            title: "Sample project",
-            taskDescription: "Start to implement sample project",
-            dueDate: nil,
-            status: TaskStatus.completed.rawValue,
-            subtasks: []
+            title: "SwiftUI Revolution: Win Over Management",
+            taskDescription: "The resistance is strong, but SwiftUI is the future! Persuade the higher-ups to embrace the change.",
+            dueDate: Calendar.current.date(byAdding: .day, value: 10, to: Date()),
+            status: TaskStatus.pending.rawValue,
+            subtasks: subtaskModels2
         )
         var taskModel3 = TaskModel(
             id: UUID(),
-            title: "Presentation slides",
-            taskDescription: "Prepare not boring slides 😄",
+            title: "Use the Gym Membership 💪🏽",
+            taskDescription: "You’ve been paying for that gym membership for months. Time to actually go.",
             dueDate: nil,
-            status: TaskStatus.pending.rawValue,
+            status: TaskStatus.completed.rawValue,
             subtasks: []
         )
 
-        var subtaskModels4: [SubtaskModel] = [
-            SubtaskModel(
-                id: UUID(),
-                title: "Schedule a meeting",
-                taskDescription: "Discuss all topics",
-                status: TaskStatus.completed.rawValue
-            )
-        ]
-        var taskModel4 = TaskModel(
-            id: UUID(),
-            title: "SwiftUI talk",
-            taskDescription: "Have a content to speak inclusively",
-            dueDate: Date(),
-            status: TaskStatus.completed.rawValue,
-            subtasks: subtaskModels4
-        )
         return [
             taskModel1,
             taskModel2,
-            taskModel3,
-            taskModel4
+            taskModel3
         ]
     }()
 }
