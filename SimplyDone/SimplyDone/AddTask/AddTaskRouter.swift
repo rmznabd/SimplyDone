@@ -10,7 +10,7 @@ import UIKit
 class AddTaskRouter {
     weak var hostingViewController: UIViewController?
 
-    func dismissAddTaskScreen() {
+    func dismiss() {
         hostingViewController?.navigationController?.popViewController(animated: true)
     }
 }

@@ -75,6 +75,6 @@ class AddTaskViewModel {
             }
         }
 
-        router.dismissAddTaskScreen()
+        router.dismiss()
     }
 }

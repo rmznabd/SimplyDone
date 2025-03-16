@@ -10,7 +10,7 @@ import UIKit
 class AddSubtaskRouter {
     weak var hostingViewController: UIViewController?
 
-    func dismissAddSubtaskScreen() {
+    func dismiss() {
         hostingViewController?.navigationController?.popViewController(animated: true)
     }
 }

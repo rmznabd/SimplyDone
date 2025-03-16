@@ -17,7 +17,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         window = UIWindow(frame: windowScene.coordinateSpace.bounds)
         window?.windowScene = windowScene
 
-        let router = TaskListRouter()  // Coordinator
+        let router = TaskListRouter()
         let viewModel = TaskListViewModel(router: router)
         let taskListViewController = TaskListViewController(viewModel: viewModel)
 

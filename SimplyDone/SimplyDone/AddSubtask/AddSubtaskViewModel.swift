@@ -84,6 +84,6 @@ class AddSubtaskViewModel {
             }
         }
 
-        router.dismissAddSubtaskScreen()
+        router.dismiss()
     }
 }
