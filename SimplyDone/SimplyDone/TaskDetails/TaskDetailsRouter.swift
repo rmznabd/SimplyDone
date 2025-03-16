@@ -48,7 +48,7 @@ class TaskDetailsRouter {
             router: router
         )
 
-        let subtasksDetailsScreen = UIHostingController(rootView: SubtaskDetails(viewModel: subtaskDetailsViewModel))
-        hostingViewController?.navigationController?.pushViewController(subtasksDetailsScreen, animated: true)
+        let subtaskDetailsVC = SubtaskDetailsViewController(viewModel: subtaskDetailsViewModel)
+        hostingViewController?.navigationController?.pushViewController(subtaskDetailsVC, animated: true)
     }
 }
