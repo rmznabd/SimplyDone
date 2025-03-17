@@ -26,7 +26,12 @@ class SubtaskDetailsViewModel {
         self.router = router
     }
 
-    func updateRealmSubtaskStatus() {
+    func toggleStatus() {
+        subtaskModel.status.toggleStatus()
+        updateRealmSubtaskStatus()
+    }
+
+    private func updateRealmSubtaskStatus() {
         guard let subtask = realm?.objects(Subtask.self).filter({ [weak self] in
             $0.id == self?.subtaskModel.id
         }).first else { return }

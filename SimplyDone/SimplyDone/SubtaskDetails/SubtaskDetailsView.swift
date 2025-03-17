@@ -21,8 +21,7 @@ struct SubtaskDetailsView: View {
                     .frame(width: 30, height: 30)
                     .foregroundColor(Color(UIColor.darkGray))
                     .onTapGesture {
-                        viewModel.subtaskModel.status.toggleStatus()
-                        viewModel.updateRealmSubtaskStatus()
+                        viewModel.toggleStatus()
                     }
                 
                 Text(viewModel.subtaskModel.title)

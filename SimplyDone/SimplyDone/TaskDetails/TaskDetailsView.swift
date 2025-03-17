@@ -20,8 +20,7 @@ struct TaskDetailsView: View {
                     .frame(width: 30, height: 30)
                     .foregroundColor(Color(UIColor.darkGray))
                     .onTapGesture {
-                        viewModel.taskModel.status.toggleStatus()
-                        viewModel.updateRealmTaskStatus()
+                        viewModel.toggleStatus()
                     }
 
                 Text(viewModel.taskModel.title)
