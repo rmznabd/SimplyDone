@@ -14,9 +14,9 @@ class TaskListRouter {
     func navigateToAddTask() {
         let router = AddTaskRouter()
         router.hostingViewController = hostingViewController
-        let addTaskViewModel = AddTaskViewModel(viewMode: .create, taskModel: TaskModel(id: UUID()), router: router)
+        let addTaskViewModel = AddTask(viewMode: .create, taskModel: TaskModel(id: UUID()), router: router)
 
-        let addTaskScreen = UIHostingController(rootView: AddTask(viewModel: addTaskViewModel))
+        let addTaskScreen = UIHostingController(rootView: AddTaskView(viewModel: addTaskViewModel))
         addTaskScreen.navigationItem.largeTitleDisplayMode = .never
         hostingViewController?.navigationController?.pushViewController(addTaskScreen, animated: true)
     }
@@ -24,9 +24,9 @@ class TaskListRouter {
     func navigateToTaskDetails(for task: TaskModel) {
         let router = TaskDetailsRouter()
         router.hostingViewController = hostingViewController
-        let taskDetailsViewModel = TaskDetailsViewModel(taskModel: task, router: router)
+        let taskDetailsViewModel = TaskDetails(taskModel: task, router: router)
 
-        let taskDetailsScreen = UIHostingController(rootView: TaskDetails(viewModel: taskDetailsViewModel))
+        let taskDetailsScreen = UIHostingController(rootView: TaskDetailsView(viewModel: taskDetailsViewModel))
         taskDetailsScreen.navigationItem.largeTitleDisplayMode = .never
         hostingViewController?.navigationController?.pushViewController(taskDetailsScreen, animated: true)
     }
@@ -40,7 +40,7 @@ class TaskListRouter {
             router: router
         )
 
-        let subtaskDetailsScreen = UIHostingController(rootView: SubtaskDetails(viewModel: subtaskDetailsviewModel))
+        let subtaskDetailsScreen = UIHostingController(rootView: SubtaskDetailsView(viewModel: subtaskDetailsviewModel))
         subtaskDetailsScreen.navigationItem.largeTitleDisplayMode = .never
         hostingViewController?.navigationController?.pushViewController(subtaskDetailsScreen, animated: true)
     }

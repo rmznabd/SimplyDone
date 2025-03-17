@@ -2,104 +2,79 @@
 //  AddTask.swift
 //  SimplyDone
 //
-//  Created by Ramazan Abdullayev on 02/03/2025.
+//  Created by Ramazan Abdullayev on 16/03/2025.
 //
 
-import RealmSwift
 import SwiftUI
+import RealmSwift
 
-struct AddTask: View {
-    @Bindable private var viewModel: AddTaskViewModel
+enum AddTaskViewMode {
+    case create
+    case edit
 
-    init(viewModel: AddTaskViewModel) {
-        self.viewModel = viewModel
-    }
-
-    var body: some View {
-        VStack(spacing: 30) {
-            titleInput
-            descriptionInput
-            dueDateInput
-            Spacer()
-            button
-        }
-        .padding()
-        .navigationTitle(viewModel.viewMode.navigationTitle)
-    }
-
-    private var titleInput: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Text("Title")
-                .font(.headline)
-            TextField("Enter task title", text: $viewModel.taskModelTitle)
-                .textFieldStyle(.roundedBorder)
+    var bottomButtonTitle: String {
+        switch self {
+        case .create:
+            return "Add"
+        case .edit:
+            return "Save"
         }
     }
 
-    private var descriptionInput: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Text("Description")
-                .font(.headline)
-
-            ZStack(alignment: .topLeading) {
-                TextEditor(text: $viewModel.taskModelDescription)
-                    .frame(minHeight: 100, maxHeight: 200)
-                    .multilineTextAlignment(.leading)
-                    .padding(6)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 8)
-                            .stroke(Color.gray.opacity(0.5), lineWidth: 0.5)
-                    )
-
-                if viewModel.taskModelDescription.isEmpty {
-                    Text("Enter task description")
-                        .foregroundColor(.gray.opacity(0.5))
-                        .padding(.horizontal, 10)
-                        .padding(.vertical, 14)
-                }
-            }
-        }
-    }
-
-    private var dueDateInput: some View {
-        DatePicker(
-            "Due Date:",
-            selection: Binding(
-                get: { viewModel.taskModelDueDate ?? Date() },
-                set: { viewModel.taskModelDueDate = $0 }
-            ),
-            displayedComponents: .date
-        )
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(.horizontal, 16)
-    }
-
-    private var button: some View {
-        Button {
-            viewModel.saveTask()
-        } label: {
-            Text(viewModel.viewMode.bottomButtonTitle)
-                .modifier(PrimaryButtonModifier())
-        }
-        .alert(isPresented: $viewModel.showAlert) {
-            Alert(
-                title: Text("Missing Information"),
-                message: Text("Please fill in both the title and description."),
-                dismissButton: .default(Text("OK"))
-            )
+    var navigationTitle: String {
+        switch self {
+        case .create:
+            return "Add new task"
+        case .edit:
+            return "Edit task"
         }
     }
 }
 
-#Preview {
-    AddTask(viewModel: .init(
-        viewMode: .edit,
-        taskModel: TaskModel(
-            id: UUID(),
-            title: "Test",
-            taskDescription: "Test description",
-            subtasks: [SubtaskModel]()
-        ),
-        router: .init())
-    )
+@Observable
+class AddTask {
+    var taskModelTitle: String
+    var taskModelDescription: String
+    var taskModelDueDate: Date?
+    var showAlert = false
+
+    let taskModel: TaskModel
+    let viewMode: AddTaskViewMode
+    private let router: AddTaskRouter
+
+    private let realm = try? Realm()
+
+    init(viewMode: AddTaskViewMode, taskModel: TaskModel, router: AddTaskRouter) {
+        self.viewMode = viewMode
+        self.taskModel = taskModel
+        self.router = router
+
+        self.taskModelTitle = taskModel.title
+        self.taskModelDescription = taskModel.taskDescription
+        self.taskModelDueDate = (viewMode == .edit) ? taskModel.dueDate : nil
+    }
+
+    func saveTask() {
+        guard !taskModelTitle.isEmpty, !taskModelDescription.isEmpty else {
+            showAlert = true
+            return
+        }
+
+        taskModel.title = taskModelTitle
+        taskModel.taskDescription = taskModelDescription
+        taskModel.dueDate = taskModelDueDate
+
+        try? realm?.write {
+            if viewMode == .create {
+                realm?.add(taskModel.toPersistObject())
+            } else {
+                guard let task = realm?.objects(Task.self).filter({ $0.id == self.taskModel.id }).first else { return }
+                task.title = taskModelTitle
+                task.taskDescription = taskModelDescription
+                task.dueDate = taskModelDueDate
+            }
+        }
+
+        router.dismiss()
+    }
 }
