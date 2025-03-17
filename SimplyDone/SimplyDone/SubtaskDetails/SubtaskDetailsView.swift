@@ -1,5 +1,5 @@
 //
-//  SubtaskDetails.swift
+//  SubtaskDetailsView.swift
 //  SimplyDone
 //
 //  Created by Ramazan Abdullayev on 02/03/2025.
@@ -8,7 +8,7 @@
 import RealmSwift
 import SwiftUI
 
-struct SubtaskDetails: View {
+struct SubtaskDetailsView: View {
 
     private(set) var viewModel: SubtaskDetailsViewModel
 
@@ -57,7 +57,7 @@ struct SubtaskDetails: View {
 
 #Preview {
     let taskModel = TaskModel.generatedTaskModels.first
-    SubtaskDetails(viewModel: SubtaskDetailsViewModel(
+    SubtaskDetailsView(viewModel: SubtaskDetailsViewModel(
         parentTaskModel: taskModel!,
         subtaskModel: taskModel!.subtasks.first!,
         router: .init()

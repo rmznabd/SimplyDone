@@ -2,97 +2,88 @@
 //  AddSubtask.swift
 //  SimplyDone
 //
-//  Created by Ramazan Abdullayev on 03/03/2025.
+//  Created by Ramazan Abdullayev on 16/03/2025.
 //
 
-import RealmSwift
 import SwiftUI
+import RealmSwift
 
-struct AddSubtask: View {
-    @Bindable private var viewModel: AddSubtaskViewModel
-
-    init(viewModel: AddSubtaskViewModel) {
-        self.viewModel = viewModel
-    }
-
-    var body: some View {
-        VStack(spacing: 30) {
-            titleInput
-            descriptionInput
-            Spacer()
-            button
-        }
-        .padding()
-        .navigationTitle(viewModel.viewMode.navigationTitle)
-    }
-
-    private var titleInput: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Text("Title")
-                .font(.headline)
-            TextField(
-                "Enter task title",
-                text: $viewModel.subtaskModelTitle
-            )
-            .textFieldStyle(.roundedBorder)
+enum AddSubtaskViewMode {
+    case create
+    case edit
+    
+    var bottomButtonTitle: String {
+        switch self {
+        case .create:
+            return "Add"
+        case .edit:
+            return "Save"
         }
     }
 
-    private var descriptionInput: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Text("Description")
-                .font(.headline)
-
-            ZStack(alignment: .topLeading) {
-                TextEditor(text: $viewModel.subtaskModelDescription)
-                    .frame(minHeight: 100, maxHeight: 200)
-                    .multilineTextAlignment(.leading)
-                    .padding(6)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 8)
-                            .stroke(Color.gray.opacity(0.5), lineWidth: 0.5)
-                    )
-
-                if viewModel.subtaskModelDescription.isEmpty {
-                    Text("Enter task description")
-                        .foregroundColor(.gray.opacity(0.5))
-                        .padding(.horizontal, 10)
-                        .padding(.vertical, 14)
-                }
-            }
-        }
-    }
-
-    private var button: some View {
-        Button {
-            viewModel.saveSubtask()
-        } label: {
-            Text(viewModel.viewMode.bottomButtonTitle)
-                .modifier(PrimaryButtonModifier())
-        }
-        .alert(isPresented: $viewModel.showAlert) {
-            Alert(
-                title: Text("Missing Information"),
-                message: Text("Please fill in both the title and description."),
-                dismissButton: .default(Text("OK"))
-            )
+    var navigationTitle: String {
+        switch self {
+        case .create:
+            return "Add new subtask"
+        case .edit:
+            return "Edit subtask"
         }
     }
 }
 
-#Preview {
-    AddSubtask(viewModel: .init(
-        viewMode: .edit,
-        parentTaskModel: TaskModel(
-            id: UUID(),
-            title: "Test task",
-            taskDescription: "Test description"
-        ),
-        subtaskModel: SubtaskModel(
-            id: UUID(),
-            title: "Subtask",
-            taskDescription: "Test description"
-        ),
-        router: .init()
-    ))
+@Observable
+class AddSubtask {
+    var viewMode: AddSubtaskViewMode
+    var subtaskModelTitle: String
+    var subtaskModelDescription: String
+    var showAlert = false
+
+    let parentTaskModel: TaskModel
+    let subtaskModel: SubtaskModel
+    private let router: AddSubtaskRouter
+
+    let realm = try? Realm()
+
+    init(
+        viewMode: AddSubtaskViewMode,
+        parentTaskModel: TaskModel,
+        subtaskModel: SubtaskModel,
+        router: AddSubtaskRouter
+    ) {
+        self.viewMode = viewMode
+        self.parentTaskModel = parentTaskModel
+        self.subtaskModel = subtaskModel
+        self.router = router
+
+        self.subtaskModelTitle = subtaskModel.title
+        self.subtaskModelDescription = subtaskModel.taskDescription
+    }
+
+    func saveSubtask() {
+        guard !subtaskModelTitle.isEmpty, !subtaskModelDescription.isEmpty else {
+            showAlert = true
+            return
+        }
+
+        subtaskModel.title = subtaskModelTitle
+        subtaskModel.taskDescription = subtaskModelDescription
+
+        guard let task = realm?.objects(Task.self).filter({
+            $0.id == self.parentTaskModel.id
+        }).first else { return }
+
+        try? realm?.write {
+            if let subtask = Array(task.subtasks).filter({
+                $0.id == subtaskModel.id
+            }).first {
+                subtask.title = subtaskModel.title
+                subtask.taskDescription = subtaskModel.taskDescription
+            } else {
+                parentTaskModel.subtasks.append(subtaskModel)
+                task.subtasks.append(subtaskModel.toPersistObject())
+            }
+        }
+
+        router.dismiss()
+    }
 }

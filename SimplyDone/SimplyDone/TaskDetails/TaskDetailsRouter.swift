@@ -15,27 +15,27 @@ class TaskDetailsRouter {
     func navigateToEditTask(for task: TaskModel) {
         let router = AddTaskRouter()
         router.hostingViewController = hostingViewController
-        let editTaskViewModel = AddTaskViewModel(
+        let editTaskViewModel = AddTask(
             viewMode: .edit,
             taskModel: task,
             router: router
         )
 
-        let editTaskScreen = UIHostingController(rootView: AddTask(viewModel: editTaskViewModel))
+        let editTaskScreen = UIHostingController(rootView: AddTaskView(viewModel: editTaskViewModel))
         hostingViewController?.navigationController?.pushViewController(editTaskScreen, animated: true)
     }
 
     func navigateToAddNewSubtask(for task: TaskModel) {
         let router = AddSubtaskRouter()
         router.hostingViewController = hostingViewController
-        let addNewSubtaskViewModel = AddSubtaskViewModel(
+        let addNewSubtaskViewModel = AddSubtask(
             viewMode: .create,
             parentTaskModel: task,
             subtaskModel: SubtaskModel(id: UUID()),
             router: router
         )
 
-        let addNewSubtaskScreen = UIHostingController(rootView: AddSubtask(viewModel: addNewSubtaskViewModel))
+        let addNewSubtaskScreen = UIHostingController(rootView: AddSubtaskView(viewModel: addNewSubtaskViewModel))
         hostingViewController?.navigationController?.pushViewController(addNewSubtaskScreen, animated: true)
     }
 

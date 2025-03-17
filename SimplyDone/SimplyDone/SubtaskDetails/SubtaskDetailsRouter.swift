@@ -15,14 +15,14 @@ class SubtaskDetailsRouter {
     func navigateToEditSubtask(for parentTask: TaskModel, and subtask: SubtaskModel) {
         let router = AddSubtaskRouter()
         router.hostingViewController = hostingViewController
-        let editSubtaskViewModel = AddSubtaskViewModel(
+        let editSubtaskViewModel = AddSubtask(
             viewMode: .edit,
             parentTaskModel: parentTask,
             subtaskModel: subtask,
             router: router
         )
 
-        let editSubtaskScreen = UIHostingController(rootView: AddSubtask(viewModel: editSubtaskViewModel))
+        let editSubtaskScreen = UIHostingController(rootView: AddSubtaskView(viewModel: editSubtaskViewModel))
         hostingViewController?.navigationController?.pushViewController(editSubtaskScreen, animated: true)
     }
 }
