@@ -15,26 +15,13 @@ struct SubtaskDetailsView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
 
-            HStack(alignment: .center) {
-                Image(systemName: viewModel.subtaskModel.status == TaskStatus.completed.rawValue ? "checkmark.square.fill": "square")
-                    .imageScale(.large)
-                    .frame(width: 30, height: 30)
-                    .foregroundColor(Color(UIColor.darkGray))
-                    .onTapGesture {
-                        viewModel.toggleStatus()
-                    }
-                
-                Text(viewModel.subtaskModel.title)
-                    .font(.title)
-                    .fontWeight(.bold)
-                    .padding(.horizontal, 5)
-            }
-            .padding(.top, 20)
+            SubtaskDetailsTitleView(
+                status: viewModel.subtaskModel.status,
+                toggleStatusAction: viewModel.toggleStatus,
+                title: viewModel.subtaskModel.title
+            )
 
-            Text(viewModel.subtaskModel.taskDescription)
-                .font(.body)
-                .foregroundColor(.secondary)
-                .padding()
+            TaskDetailsDescriptionView(description: viewModel.subtaskModel.taskDescription)
 
             Spacer()
         }
