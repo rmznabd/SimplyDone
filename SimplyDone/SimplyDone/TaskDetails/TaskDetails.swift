@@ -36,7 +36,12 @@ class TaskDetails {
         }
     }
 
-    func updateRealmTaskStatus() {
+    func toggleStatus() {
+        taskModel.status.toggleStatus()
+        updateRealmTaskStatus()
+    }
+
+    private func updateRealmTaskStatus() {
         guard let task = realm?.objects(Task.self).filter({ [weak self] in
             $0.id == self?.taskModel.id
         }).first else { return }

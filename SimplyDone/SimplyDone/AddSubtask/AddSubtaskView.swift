@@ -17,66 +17,17 @@ struct AddSubtaskView: View {
 
     var body: some View {
         VStack(spacing: 30) {
-            titleInput
-            descriptionInput
+            AddTaskTitleView(title: $viewModel.subtaskModelTitle)
+            AddTaskDescriptionView(description: $viewModel.subtaskModelDescription)
             Spacer()
-            button
+            AddTaskBottomButtonView(
+                title: viewModel.viewMode.bottomButtonTitle,
+                action: viewModel.saveSubtask,
+                showAlert: $viewModel.showAlert
+            )
         }
         .padding()
         .navigationTitle(viewModel.viewMode.navigationTitle)
-    }
-
-    private var titleInput: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Text("Title")
-                .font(.headline)
-            TextField(
-                "Enter task title",
-                text: $viewModel.subtaskModelTitle
-            )
-            .textFieldStyle(.roundedBorder)
-        }
-    }
-
-    private var descriptionInput: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Text("Description")
-                .font(.headline)
-
-            ZStack(alignment: .topLeading) {
-                TextEditor(text: $viewModel.subtaskModelDescription)
-                    .frame(minHeight: 100, maxHeight: 200)
-                    .multilineTextAlignment(.leading)
-                    .padding(6)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 8)
-                            .stroke(Color.gray.opacity(0.5), lineWidth: 0.5)
-                    )
-
-                if viewModel.subtaskModelDescription.isEmpty {
-                    Text("Enter task description")
-                        .foregroundColor(.gray.opacity(0.5))
-                        .padding(.horizontal, 10)
-                        .padding(.vertical, 14)
-                }
-            }
-        }
-    }
-
-    private var button: some View {
-        Button {
-            viewModel.saveSubtask()
-        } label: {
-            Text(viewModel.viewMode.bottomButtonTitle)
-                .modifier(PrimaryButtonModifier())
-        }
-        .alert(isPresented: $viewModel.showAlert) {
-            Alert(
-                title: Text("Missing Information"),
-                message: Text("Please fill in both the title and description."),
-                dismissButton: .default(Text("OK"))
-            )
-        }
     }
 }
 

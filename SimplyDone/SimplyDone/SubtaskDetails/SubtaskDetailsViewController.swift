@@ -107,8 +107,7 @@ class SubtaskDetailsViewController: UIViewController {
     }
 
     @objc private func didTapCheckbox() {
-        viewModel.subtaskModel.status.toggleStatus()
-        viewModel.updateRealmSubtaskStatus()
+        viewModel.toggleStatus()
         updateCheckboxImage()
     }
 
